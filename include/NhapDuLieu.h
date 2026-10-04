@@ -42,8 +42,7 @@ public:
             if (!chuoi.empty()) return chuoi;
             std::cout << " -> Loi: Thong tin khong duoc de trong!\n";
         }
-    
-    
+    }
     static bool xacNhan(std::string thongBao) {
         std::string luaChon;
         while (true) {
