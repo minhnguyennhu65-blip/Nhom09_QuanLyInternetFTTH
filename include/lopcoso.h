@@ -1,17 +1,17 @@
-#ifndef ENTITY_H
-#define ENTITY_H
+#ifndef LOP_CO_SO_H
+#define LOP_CO_SO_H
 
 #include <string>
 #include <iostream>
 
-class Entity {
+class LopCoSo {
 protected:
     std::string maDinhDanh; 
 
 public:
-    Entity() {}
-    Entity(std::string ma) : maDinhDanh(ma) {}
-    virtual ~Entity() {}
+    LopCoSo() {}
+    LopCoSo(std::string ma) : maDinhDanh(ma) {}
+    virtual ~LopCoSo() {}
 
     std::string getMaDinhDanh() const { return maDinhDanh; }
     void setMaDinhDanh(std::string maMoi) { maDinhDanh = maMoi; }
