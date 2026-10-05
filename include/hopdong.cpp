@@ -18,13 +18,13 @@ private:
     std::string maKhachHang;
     std::string maGoiCuoc;
     std::string maThietBi;
-    std::string ngayKy;         // Format: DD/MM/YYYY
-    std::string ngayHetHan;     // Format: DD/MM/YYYY
-    std::string trangThai;      // Hoat dong / Tat / Huy
-    double giaThieuDung;        // Gia tien thieu dung hang thang (>= 0)
+    std::string ngayKy;        
+    std::string ngayHetHan;     
+    std::string trangThai;      
+    double giaThieuDung;       
     std::string ghiChu;
 
-    // Enum trang thai hop le
+    
     static const std::string TRANG_THAI_HOAT_DONG;
     static const std::string TRANG_THAI_TAT;
     static const std::string TRANG_THAI_HUY;
@@ -35,7 +35,7 @@ private:
                tt == TRANG_THAI_HUY;
     }
 
-    // QUY TAC 1: Ma dinh danh - chi gom chu HOA va chu so
+    
     static bool hopLeMa(const std::string& ma) {
         if (ma.empty()) {
             throw std::invalid_argument("[Loi QT1] Ma dinh danh khong duoc de trong!");
@@ -48,7 +48,7 @@ private:
         return true;
     }
 
-    // QUY TAC 2: Chuoi - khong rong va khong chua '|'
+    
     static bool hopLeChuoi(const std::string& s) {
         if (s.empty()) {
             throw std::invalid_argument("[Loi QT2] Thong tin khong duoc de trong!");
@@ -59,7 +59,7 @@ private:
         return true;
     }
 
-    // QUY TAC 3: Gia tri so >= 0
+    
     static bool hopLeSo(double v) {
         if (v < 0) {
             throw std::invalid_argument("[Loi QT3] Gia tri so phai >= 0!");
@@ -67,7 +67,7 @@ private:
         return true;
     }
 
-    // QUY TAC 5: Ngay thang - DD/MM/YYYY va hop le trong thuc te
+   
     static bool hopLeNgay(const std::string& ngay) {
         if (ngay.length() != 10) {
             throw std::invalid_argument("[Loi QT5] Ngay phai co dinh dang DD/MM/YYYY (10 ky tu)!");
@@ -76,7 +76,7 @@ private:
             throw std::invalid_argument("[Loi QT5] Ngay phai co dinh dang DD/MM/YYYY!");
         }
 
-        // Kiem tra cac ky tu la chu so
+        
         for (int i = 0; i < 10; i++) {
             if (i != 2 && i != 5) {
                 if (!std::isdigit(static_cast<unsigned char>(ngay[i]))) {
@@ -85,7 +85,7 @@ private:
             }
         }
 
-        // Doc ngay, thang, nam
+        
         int ngay_val = std::stoi(ngay.substr(0, 2));
         int thang_val = std::stoi(ngay.substr(3, 2));
         int nam_val = std::stoi(ngay.substr(6, 4));
@@ -95,17 +95,17 @@ private:
             throw std::invalid_argument("[Loi QT5] Nam phai trong khoang 1900-2100!");
         }
 
-        // Kiem tra thang (1-12)
+        
         if (thang_val < 1 || thang_val > 12) {
             throw std::invalid_argument("[Loi QT5] Thang phai trong khoang 01-12!");
         }
 
-        // Kiem tra ngay theo thang
+       
         int ngay_toi_da = 31;
         if (thang_val == 4 || thang_val == 6 || thang_val == 9 || thang_val == 11) {
             ngay_toi_da = 30;
         } else if (thang_val == 2) {
-            // Kiem tra nam nhuan
+           
             bool la_nam_nhuan = (nam_val % 4 == 0 && nam_val % 100 != 0) || (nam_val % 400 == 0);
             ngay_toi_da = la_nam_nhuan ? 29 : 28;
         }
@@ -118,14 +118,14 @@ private:
         return true;
     }
 
-    // Chuyen so thuc thanh chuoi voi 2 chu so thap phan
+    
     static std::string soThucThanhChuoi(double v) {
         std::ostringstream os;
         os << std::fixed << std::setprecision(2) << v;
         return os.str();
     }
 
-    // Doc so thuc tu chuoi
+    
     static double docSoThuc(const std::string& s) {
         if (s.empty()) {
             throw std::invalid_argument("[Loi doc so] Chuoi so thuc rong!");
@@ -155,7 +155,7 @@ public:
         ghiChu = "";
     }
 
-    // Getter
+    
     std::string getMaKhachHang() const { return maKhachHang; }
     std::string getMaGoiCuoc() const { return maGoiCuoc; }
     std::string getMaThietBi() const { return maThietBi; }
@@ -165,7 +165,7 @@ public:
     double getGiaThieuDung() const { return giaThieuDung; }
     std::string getGhiChu() const { return ghiChu; }
 
-    // Setter - Quy tac 1: Khoa cung ma dinh danh khi sua
+    
     void setTrangThai(const std::string& tt) {
         if (!hopLeTrangThai(tt)) {
             throw std::invalid_argument("[Loi QT6] Trang thai hop dong phai la: " 
@@ -175,7 +175,7 @@ public:
     }
 
     void nhapThongTin() override {
-        // QUY TAC 1: Nhap ma hop dong (kiem tra trung sau trong he thong quan ly)
+        
         while (true) {
             try {
                 maDinhDanh = NhapDuLieu::nhapChuoi("Nhap ma hop dong (maHD, VIET HOA/chu so): ");
@@ -186,7 +186,7 @@ public:
             }
         }
 
-        // QUY TAC 7: Nhap ma khach hang (kiem tra tham chieu sau)
+       
         while (true) {
             try {
                 maKhachHang = NhapDuLieu::nhapChuoi("Nhap ma khach hang: ");
@@ -197,7 +197,7 @@ public:
             }
         }
 
-        // QUY TAC 7: Nhap ma goi cuoc (kiem tra tham chieu sau)
+       
         while (true) {
             try {
                 maGoiCuoc = NhapDuLieu::nhapChuoi("Nhap ma goi cuoc: ");
@@ -208,7 +208,7 @@ public:
             }
         }
 
-        // QUY TAC 7: Nhap ma thiet bi (kiem tra tham chieu sau)
+       
         while (true) {
             try {
                 maThietBi = NhapDuLieu::nhapChuoi("Nhap ma thiet bi: ");
@@ -219,7 +219,7 @@ public:
             }
         }
 
-        // QUY TAC 5: Nhap ngay ky
+        
         while (true) {
             try {
                 ngayKy = NhapDuLieu::nhapChuoi("Nhap ngay ky hop dong (DD/MM/YYYY): ");
@@ -230,7 +230,7 @@ public:
             }
         }
 
-        // QUY TAC 5: Nhap ngay het han
+       
         while (true) {
             try {
                 ngayHetHan = NhapDuLieu::nhapChuoi("Nhap ngay het han hop dong (DD/MM/YYYY): ");
@@ -241,7 +241,7 @@ public:
             }
         }
 
-        // QUY TAC 3: Nhap gia thieu dung (>= 0)
+       
         while (true) {
             try {
                 giaThieuDung = NhapDuLieu::nhapSoThuc("Nhap gia thieu dung hang thang (>= 0): ");
@@ -252,7 +252,7 @@ public:
             }
         }
 
-        // QUY TAC 6: Nhap trang thai (danh sach co dinh)
+       
         while (true) {
             try {
                 trangThai = NhapDuLieu::nhapChuoi(
@@ -264,7 +264,7 @@ public:
             }
         }
 
-        // Nhap ghi chu (co the rong, nhung neu co thi khong chua '|')
+       
         ghiChu = NhapDuLieu::nhapChuoi("Nhap ghi chu (neu co, bao gom ca chuoi rong): ");
         if (ghiChu.find('|') != std::string::npos) {
             std::cout << "[Canh bao] Ghi chu chua ky tu '|', da xoa het ky tu nay.\n";
@@ -308,7 +308,7 @@ public:
         std::getline(ss, tt, '|');
         std::getline(ss, ghu, '|');
 
-        // Validate tung truong
+       
         try {
             hopLeMa(ma);
             hopLeMa(makv);
@@ -325,7 +325,7 @@ public:
             throw std::invalid_argument(std::string(e.what()) + " (dong: " + dong + ")");
         }
 
-        // Chi gan khi toan bo du lieu hop le
+       
         maDinhDanh = ma;
         maKhachHang = makv;
         maGoiCuoc = magoi;
