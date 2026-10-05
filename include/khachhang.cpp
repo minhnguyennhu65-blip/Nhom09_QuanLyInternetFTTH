@@ -17,9 +17,9 @@ private:
     std::string soDienThoai;
     std::string diaChiLapDat;
     std::string email;
-    std::string trangThai;  // Dang su dung / Khoa / Huy
+    std::string trangThai;  
 
-    // Enum trang thai hop le
+    
     static const std::string TRANG_THAI_DANG_SU_DUNG;
     static const std::string TRANG_THAI_KHOA;
     static const std::string TRANG_THAI_HUY;
@@ -30,7 +30,7 @@ private:
                tt == TRANG_THAI_HUY;
     }
 
-    // QUY TAC 4: So dien thoai phai co dung 10 chu so va bat dau bang 0
+    
     static bool hopLeSoDienThoai(const std::string& sdt) {
         if (sdt.length() != 10) {
             throw std::invalid_argument("[Loi QT4] So dien thoai phai co dung 10 chu so!");
@@ -46,7 +46,7 @@ private:
         return true;
     }
 
-    // QUY TAC 1: Ma dinh danh - chi gom chu HOA va chu so
+   
     static bool hopLeMa(const std::string& ma) {
         if (ma.empty()) {
             throw std::invalid_argument("[Loi QT1] Ma dinh danh khong duoc de trong!");
@@ -59,7 +59,7 @@ private:
         return true;
     }
 
-    // QUY TAC 2: Chuoi - khong rong va khong chua '|'
+    
     static bool hopLeChuoi(const std::string& s) {
         if (s.empty()) {
             throw std::invalid_argument("[Loi QT2] Thong tin khong duoc de trong!");
@@ -79,14 +79,14 @@ public:
         trangThai = TRANG_THAI_DANG_SU_DUNG;
     }
 
-    // Getter
+    
     std::string getTenKhachHang() const { return tenKhachHang; }
     std::string getSoDienThoai() const { return soDienThoai; }
     std::string getDiaChiLapDat() const { return diaChiLapDat; }
     std::string getEmail() const { return email; }
     std::string getTrangThai() const { return trangThai; }
 
-    // Setter - Quy tac 1: Khoa cung ma dinh danh khi sua
+   
     void setTrangThai(const std::string& tt) {
         if (!hopLeTrangThai(tt)) {
             throw std::invalid_argument("[Loi QT6] Trang thai khach hang phai la: " 
@@ -96,7 +96,7 @@ public:
     }
 
     void nhapThongTin() override {
-        // QUY TAC 1: Nhap ma khach hang (kiem tra sau trong he thong quan ly)
+        
         while (true) {
             try {
                 maDinhDanh = NhapDuLieu::nhapChuoi("Nhap ma khach hang (maKH, VIET HOA/chu so): ");
@@ -107,7 +107,7 @@ public:
             }
         }
 
-        // Nhap ten khach hang
+        
         while (true) {
             try {
                 tenKhachHang = NhapDuLieu::nhapChuoi("Nhap ten khach hang: ");
@@ -118,7 +118,7 @@ public:
             }
         }
 
-        // QUY TAC 4: Nhap so dien thoai (10 chu so, bat dau bang 0)
+        
         while (true) {
             try {
                 soDienThoai = NhapDuLieu::nhapChuoi("Nhap so dien thoai (10 chu so, bat dau bang 0): ");
@@ -129,7 +129,7 @@ public:
             }
         }
 
-        // Nhap dia chi lap dat
+        t
         while (true) {
             try {
                 diaChiLapDat = NhapDuLieu::nhapChuoi("Nhap dia chi lap dat: ");
@@ -140,7 +140,7 @@ public:
             }
         }
 
-        // Nhap email
+        
         while (true) {
             try {
                 email = NhapDuLieu::nhapChuoi("Nhap email: ");
@@ -151,7 +151,7 @@ public:
             }
         }
 
-        // QUY TAC 6: Nhap trang thai (danh sach co dinh)
+        
         while (true) {
             try {
                 trangThai = NhapDuLieu::nhapChuoi(
@@ -193,7 +193,7 @@ public:
         std::getline(ss, em, '|');
         std::getline(ss, tt, '|');
 
-        // Validate tung truong
+        
         try {
             hopLeMa(ma);
             hopLeChuoi(ten);
@@ -207,7 +207,7 @@ public:
             throw std::invalid_argument(std::string(e.what()) + " (dong: " + dong + ")");
         }
 
-        // Chi gan khi toan bo du lieu hop le
+        
         maDinhDanh = ma;
         tenKhachHang = ten;
         soDienThoai = sdt;
@@ -217,7 +217,7 @@ public:
     }
 };
 
-// Dinh nghia cac hang so trang thai
+
 const std::string KhachHang::TRANG_THAI_DANG_SU_DUNG = "Dang su dung";
 const std::string KhachHang::TRANG_THAI_KHOA = "Khoa";
 const std::string KhachHang::TRANG_THAI_HUY = "Huy";
