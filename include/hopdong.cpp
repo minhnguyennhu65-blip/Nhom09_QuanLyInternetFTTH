@@ -90,7 +90,7 @@ private:
         int thang_val = std::stoi(ngay.substr(3, 2));
         int nam_val = std::stoi(ngay.substr(6, 4));
 
-        // Kiem tra nam hop le (1900-2100)
+      
         if (nam_val < 1900 || nam_val > 2100) {
             throw std::invalid_argument("[Loi QT5] Nam phai trong khoang 1900-2100!");
         }
@@ -338,7 +338,7 @@ public:
     }
 };
 
-// Dinh nghia cac hang so trang thai
+
 const std::string HopDong::TRANG_THAI_HOAT_DONG = "Hoat dong";
 const std::string HopDong::TRANG_THAI_TAT = "Tat";
 const std::string HopDong::TRANG_THAI_HUY = "Huy";
