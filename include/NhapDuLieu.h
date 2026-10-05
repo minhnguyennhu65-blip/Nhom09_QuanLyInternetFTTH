@@ -4,55 +4,235 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include <cctype>
+#include <algorithm>
 
 class NhapDuLieu {
 public:
-   
-    static int nhapSoNguyen(std::string thongBao) {
-        int giaTri;
-        while (true) {
-            std::cout << thongBao;
-            if (std::cin >> giaTri) {
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                return giaTri;
-            }
-            std::cout << " -> Loi: Vui long nhap mot so nguyen hop le!\n";
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        }
-    }
-    static double nhapSoThuc(std::string thongBao) {
-        double giaTri;
-        while (true) {
-            std::cout << thongBao;
-            if (std::cin >> giaTri) {
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                return giaTri;
-            }
-            std::cout << " -> Loi: Vui long nhap mot so thuc hop le!\n";
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        }
-    }
-    static std::string nhapChuoi(std::string thongBao) {
+
+    static std::string nhapChuoi(const std::string& thongBao) {
         std::string chuoi;
+
         while (true) {
             std::cout << thongBao;
             std::getline(std::cin, chuoi);
-            if (!chuoi.empty()) return chuoi;
-            std::cout << " -> Loi: Thong tin khong duoc de trong!\n";
+
+            size_t dau = chuoi.find_first_not_of(" \t");
+
+            if (dau == std::string::npos) {
+                std::cout << " -> Loi: Thong tin khong duoc de trong!\n";
+                continue;
+            }
+
+            size_t cuoi = chuoi.find_last_not_of(" \t");
+
+            chuoi = chuoi.substr(dau, cuoi - dau + 1);
+
+            if (chuoi.find('|') != std::string::npos) {
+                std::cout << " -> Loi: Thong tin khong duoc chua ky tu '|'!\n";
+                continue;
+            }
+
+            return chuoi;
         }
     }
-    static bool xacNhan(std::string thongBao) {
+
+    static std::string nhapMaDinhDanh(const std::string& thongBao) {
+        while (true) {
+            std::string ma = nhapChuoi(thongBao);
+
+            bool hopLe = true;
+
+            for (char c : ma) {
+                if (std::isspace(static_cast<unsigned char>(c))) {
+                    hopLe = false;
+                    break;
+                }
+            }
+
+            if (hopLe) {
+                std::transform(
+                    ma.begin(),
+                    ma.end(),
+                    ma.begin(),
+                    [](unsigned char c) {
+                        return std::toupper(c);
+                    }
+                );
+
+                return ma;
+            }
+
+            std::cout << " -> Loi: Ma dinh danh khong duoc chua khoang trang!\n";
+        }
+    }
+
+    static int nhapSoNguyenDuong(const std::string& thongBao) {
+        int giaTri;
+
+        while (true) {
+            std::cout << thongBao;
+
+            if (std::cin >> giaTri && giaTri >= 0) {
+                std::cin.ignore(
+                    std::numeric_limits<std::streamsize>::max(),
+                    '\n'
+                );
+
+                return giaTri;
+            }
+
+            std::cout << " -> Loi: Gia tri phai la so nguyen >= 0!\n";
+
+            std::cin.clear();
+
+            std::cin.ignore(
+                std::numeric_limits<std::streamsize>::max(),
+                '\n'
+            );
+        }
+    }
+
+    static double nhapSoThucDuong(const std::string& thongBao) {
+        double giaTri;
+
+        while (true) {
+            std::cout << thongBao;
+
+            if (std::cin >> giaTri && giaTri >= 0.0) {
+                std::cin.ignore(
+                    std::numeric_limits<std::streamsize>::max(),
+                    '\n'
+                );
+
+                return giaTri;
+            }
+
+            std::cout << " -> Loi: Gia tri phai la so thuc >= 0!\n";
+
+            std::cin.clear();
+
+            std::cin.ignore(
+                std::numeric_limits<std::streamsize>::max(),
+                '\n'
+            );
+        }
+    }
+    static std::string nhapSoDienThoai(const std::string& thongBao) {
+        while (true) {
+            std::string sdt = nhapChuoi(thongBao);
+
+            if (sdt.length() == 10 && sdt[0] == '0') {
+
+                bool toanSo = true;
+
+                for (char c : sdt) {
+                    if (!std::isdigit(
+                            static_cast<unsigned char>(c))) {
+                        toanSo = false;
+                        break;
+                    }
+                }
+
+                if (toanSo) {
+                    return sdt;
+                }
+            }
+
+            std::cout
+                << " -> Loi: So dien thoai phai co 10 chu so "
+                << "va bat dau bang '0'!\n";
+        }
+    }
+
+    static bool laNamNhuan(int nam) {
+        return (nam % 400 == 0) ||
+               (nam % 4 == 0 && nam % 100 != 0);
+    }
+
+    static bool ngayHopLe(int ngay, int thang, int nam) {
+
+        if (nam < 1900 || nam > 2100) {
+            return false;
+        }
+
+        if (thang < 1 || thang > 12) {
+            return false;
+        }
+
+        int soNgayTrongThang[] = {
+            31, 28, 31, 30, 31, 30,
+            31, 31, 30, 31, 30, 31
+        };
+
+        if (thang == 2 && laNamNhuan(nam)) {
+            soNgayTrongThang[1] = 29;
+        }
+
+        return ngay >= 1 &&
+               ngay <= soNgayTrongThang[thang - 1];
+    }
+
+    static std::string nhapNgayThang(const std::string& thongBao) {
+        while (true) {
+            std::string ngay = nhapChuoi(thongBao);
+
+            if (ngay.length() == 10 &&
+                ngay[2] == '/' &&
+                ngay[5] == '/') {
+
+                try {
+                    bool hopLe = true;
+                    for (int i = 0; i < 10; i++) {
+                        if (i == 2 || i == 5) {
+                            continue;
+                        }
+
+                        if (!std::isdigit(
+                                static_cast<unsigned char>(ngay[i]))) {
+                            hopLe = false;
+                            break;
+                        }
+                    }
+                    if (!hopLe) {
+                        throw std::exception();
+                    }
+
+                    int d = std::stoi(ngay.substr(0, 2));
+                    int m = std::stoi(ngay.substr(3, 2));
+                    int y = std::stoi(ngay.substr(6, 4));
+
+                    if (ngayHopLe(d, m, y)) {
+                        return ngay;
+                    }
+                } catch (...) {
+                }
+            }
+
+            std::cout
+                << " -> Loi: Ngay khong hop le! "
+                << "Dung dinh dang DD/MM/YYYY "
+                << "(VD: 15/03/2026).\n";
+        }
+    }
+
+    static bool xacNhan(const std::string& thongBao) {
         std::string luaChon;
+
         while (true) {
             std::cout << thongBao << " (y/n): ";
             std::getline(std::cin, luaChon);
-            if (luaChon == "y" || luaChon == "Y") return true;
-            if (luaChon == "n" || luaChon == "N") return false;
-            std::cout << " -> Vui long chi nhap 'y' (Dong y) hoac 'n' (Huy bo).\n";
+            if (luaChon == "y" || luaChon == "Y") {
+                return true;
+            }
+            if (luaChon == "n" || luaChon == "N") {
+                return false;
+            }
+            std::cout
+                << " -> Vui long chi nhap 'y' (Dong y) "
+                << "hoac 'n' (Huy bo).\n";
         }
     }
 };
 
-#endif 
+#endif
