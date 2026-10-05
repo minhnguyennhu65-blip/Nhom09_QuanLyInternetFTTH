@@ -5,7 +5,6 @@
 #include "NhapDuLieu.h"
 
 #include <algorithm>
-#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -17,9 +16,8 @@ private:
     std::string soDienThoai;
     std::string diaChiLapDat;
     std::string email;
-    std::string trangThai;  
+    std::string trangThai;  // Dang su dung / Khoa / Huy
 
-    
     static const std::string TRANG_THAI_DANG_SU_DUNG;
     static const std::string TRANG_THAI_KHOA;
     static const std::string TRANG_THAI_HUY;
@@ -28,46 +26,6 @@ private:
         return tt == TRANG_THAI_DANG_SU_DUNG || 
                tt == TRANG_THAI_KHOA || 
                tt == TRANG_THAI_HUY;
-    }
-
-    
-    static bool hopLeSoDienThoai(const std::string& sdt) {
-        if (sdt.length() != 10) {
-            throw std::invalid_argument("[Loi QT4] So dien thoai phai co dung 10 chu so!");
-        }
-        if (sdt[0] != '0') {
-            throw std::invalid_argument("[Loi QT4] So dien thoai phai bat dau bang so 0!");
-        }
-        for (char c : sdt) {
-            if (!std::isdigit(static_cast<unsigned char>(c))) {
-                throw std::invalid_argument("[Loi QT4] So dien thoai chi chua chu so!");
-            }
-        }
-        return true;
-    }
-
-   
-    static bool hopLeMa(const std::string& ma) {
-        if (ma.empty()) {
-            throw std::invalid_argument("[Loi QT1] Ma dinh danh khong duoc de trong!");
-        }
-        for (unsigned char ch : ma) {
-            if (!(std::isupper(ch) || std::isdigit(ch))) {
-                throw std::invalid_argument("[Loi QT1] Ma chi gom chu HOA (A-Z) va chu so (0-9)!");
-            }
-        }
-        return true;
-    }
-
-    
-    static bool hopLeChuoi(const std::string& s) {
-        if (s.empty()) {
-            throw std::invalid_argument("[Loi QT2] Thong tin khong duoc de trong!");
-        }
-        if (s.find('|') != std::string::npos) {
-            throw std::invalid_argument("[Loi QT2] Khong duoc chua ky tu '|'!");
-        }
-        return true;
     }
 
 public:
@@ -79,95 +37,42 @@ public:
         trangThai = TRANG_THAI_DANG_SU_DUNG;
     }
 
-    
     std::string getTenKhachHang() const { return tenKhachHang; }
     std::string getSoDienThoai() const { return soDienThoai; }
     std::string getDiaChiLapDat() const { return diaChiLapDat; }
     std::string getEmail() const { return email; }
     std::string getTrangThai() const { return trangThai; }
 
-   
     void setTrangThai(const std::string& tt) {
         if (!hopLeTrangThai(tt)) {
-            throw std::invalid_argument("[Loi QT6] Trang thai khach hang phai la: " 
-                + TRANG_THAI_DANG_SU_DUNG + ", " + TRANG_THAI_KHOA + " hoac " + TRANG_THAI_HUY);
+            throw std::invalid_argument("Trang thai khach hang khong hop le!");
         }
         trangThai = tt;
     }
 
     void nhapThongTin() override {
-        
-        while (true) {
-            try {
-                maDinhDanh = NhapDuLieu::nhapChuoi("Nhap ma khach hang (maKH, VIET HOA/chu so): ");
-                hopLeMa(maDinhDanh);
-                break;
-            } catch (const std::invalid_argument& e) {
-                std::cout << e.what() << "\n";
-            }
-        }
+        maDinhDanh = NhapDuLieu::nhapMaDinhDanh("Nhap ma khach hang (maKH): ");
+        tenKhachHang = NhapDuLieu::nhapChuoi("Nhap ten khach hang: ");
+        soDienThoai = NhapDuLieu::nhapSoDienThoai("Nhap so dien thoai (10 chu so, bat dau bang 0): ");
+        diaChiLapDat = NhapDuLieu::nhapChuoi("Nhap dia chi lap dat: ");
+        email = NhapDuLieu::nhapChuoi("Nhap email: ");
 
-        
         while (true) {
-            try {
-                tenKhachHang = NhapDuLieu::nhapChuoi("Nhap ten khach hang: ");
-                hopLeChuoi(tenKhachHang);
+            std::string tt = NhapDuLieu::nhapChuoi(
+                "Nhap trang thai (" + TRANG_THAI_DANG_SU_DUNG + "/" + 
+                TRANG_THAI_KHOA + "/" + TRANG_THAI_HUY + "): ");
+            if (hopLeTrangThai(tt)) {
+                trangThai = tt;
                 break;
-            } catch (const std::invalid_argument& e) {
-                std::cout << e.what() << "\n";
             }
-        }
-
-        
-        while (true) {
-            try {
-                soDienThoai = NhapDuLieu::nhapChuoi("Nhap so dien thoai (10 chu so, bat dau bang 0): ");
-                hopLeSoDienThoai(soDienThoai);
-                break;
-            } catch (const std::invalid_argument& e) {
-                std::cout << e.what() << "\n";
-            }
-        }
-
-        t
-        while (true) {
-            try {
-                diaChiLapDat = NhapDuLieu::nhapChuoi("Nhap dia chi lap dat: ");
-                hopLeChuoi(diaChiLapDat);
-                break;
-            } catch (const std::invalid_argument& e) {
-                std::cout << e.what() << "\n";
-            }
-        }
-
-        
-        while (true) {
-            try {
-                email = NhapDuLieu::nhapChuoi("Nhap email: ");
-                hopLeChuoi(email);
-                break;
-            } catch (const std::invalid_argument& e) {
-                std::cout << e.what() << "\n";
-            }
-        }
-
-        
-        while (true) {
-            try {
-                trangThai = NhapDuLieu::nhapChuoi(
-                    "Nhap trang thai (" + TRANG_THAI_DANG_SU_DUNG + "/" + TRANG_THAI_KHOA + "/" + TRANG_THAI_HUY + "): ");
-                hopLeTrangThai(trangThai);
-                break;
-            } catch (const std::invalid_argument& e) {
-                std::cout << e.what() << "\n";
-            }
+            std::cout << " -> Loi: Trang thai khong hop le!\n";
         }
     }
 
     void hienThiThongTin() const override {
         std::cout << "Ma KH: " << maDinhDanh
                   << " | Ten: " << tenKhachHang
-                  << " | S\u0110T: " << soDienThoai
+                  << " | SDT: " << soDienThoai
                   << " | Dia chi: " << diaChiLapDat
                   << " | Email: " << email
                   << " | Trang thai: " << trangThai << "\n";
@@ -180,8 +85,7 @@ public:
 
     void docTuChuoi(const std::string& dong) override {
         if (std::count(dong.begin(), dong.end(), '|') != 5) {
-            throw std::invalid_argument(
-                "[Loi doc file] Dong du lieu khong dung so cot (KhachHang). Can 5 dau '|'.");
+            throw std::invalid_argument("Dong du lieu KhachHang co so cot khong dung.");
         }
 
         std::stringstream ss(dong);
@@ -193,21 +97,13 @@ public:
         std::getline(ss, em, '|');
         std::getline(ss, tt, '|');
 
-        
-        try {
-            hopLeMa(ma);
-            hopLeChuoi(ten);
-            hopLeSoDienThoai(sdt);
-            hopLeChuoi(diachi);
-            hopLeChuoi(em);
-            if (!hopLeTrangThai(tt)) {
-                throw std::invalid_argument("[Loi QT6] Trang thai khong hop le: " + tt);
-            }
-        } catch (const std::invalid_argument& e) {
-            throw std::invalid_argument(std::string(e.what()) + " (dong: " + dong + ")");
-        }
+        if (ma.empty()) throw std::invalid_argument("Ma khach hang khong duoc de trong.");
+        if (ten.empty()) throw std::invalid_argument("Ten khach hang khong duoc de trong.");
+        if (sdt.length() != 10 || sdt[0] != '0') throw std::invalid_argument("So dien thoai khong hop le: " + sdt);
+        if (diachi.empty()) throw std::invalid_argument("Dia chi khong duoc de trong.");
+        if (em.empty()) throw std::invalid_argument("Email khong duoc de trong.");
+        if (!hopLeTrangThai(tt)) throw std::invalid_argument("Trang thai khach hang khong hop le: " + tt);
 
-        
         maDinhDanh = ma;
         tenKhachHang = ten;
         soDienThoai = sdt;
@@ -216,7 +112,6 @@ public:
         trangThai = tt;
     }
 };
-
 
 const std::string KhachHang::TRANG_THAI_DANG_SU_DUNG = "Dang su dung";
 const std::string KhachHang::TRANG_THAI_KHOA = "Khoa";
