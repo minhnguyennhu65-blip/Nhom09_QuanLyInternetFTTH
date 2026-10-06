@@ -1,3 +1,10 @@
+/* =======================================================
+ * Tên tác giả: Nguyễn Như Minh
+ * Mã sinh viên: B24DCVT253
+ * Mô tả file: Lớp khuôn mẫu (Template Repository) đóng gói 
+ * thuật toán xử lý mảng (vector), file text và các hàm CRUD.
+ * ======================================================= */
+
 #ifndef QUAN_LY_LUU_TRU_H
 #define QUAN_LY_LUU_TRU_H
 
