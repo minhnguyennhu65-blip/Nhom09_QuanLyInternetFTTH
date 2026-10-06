@@ -1,0 +1,5 @@
+NV001|Nguyen Duc Huy|CHUA_CAP_NHAT|Lap dat Internet|Ha Phong|Dang lam
+NV002|Nguyen Nhu Minh|CHUA_CAP_NHAT|Sua chua modem|Cam Pha|Dang lam
+NV003|Hoang Trong Khoa|CHUA_CAP_NHAT|Bao tri thiet bi|Uong Bi|Dang lam
+NV004|Tran Ngoc Huy|CHUA_CAP_NHAT|Xu ly su co mang|Ha Long|Dang lam
+NV005|Dinh Van Truong|CHUA_CAP_NHAT|Lap dat cap quang|Mong Cai|Dang lam
