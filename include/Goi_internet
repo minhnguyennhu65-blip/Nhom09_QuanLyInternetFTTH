@@ -1,3 +1,7 @@
+/* =======================================================
+ * Tên tác giả: Trần Ngọc Huy
+ * Mã sinh viên: B24DCVT183
+ * Mô tả file:định nghĩa dữ liệu và các hành vi cho tính năng quản lý gói cước Internet, giúp tách biệt phần khai báo với phần cài đặt chi tiết (file .cpp)./
 
 #ifndef UC01_GOI_INTERNET_HPP
 #define UC01_GOI_INTERNET_HPP
