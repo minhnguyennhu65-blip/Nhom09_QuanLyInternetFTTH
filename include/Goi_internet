@@ -1,0 +1,51 @@
+#ifndef UC01_GOI_INTERNET_HPP
+#define UC01_GOI_INTERNET_HPP
+
+#include <string>
+#include <vector>
+
+class GoiInternet {
+private:
+    std::string maGoi;
+    std::string tenGoi;
+    double tocDo;      // Mbps
+    double giaThang;   // VNÐ
+    std::string moTa;
+    bool trangThai;    // true: Ho?t d?ng, false: Ng?ng
+
+public:
+    GoiInternet();
+    GoiInternet(std::string ma, std::string ten, double td, double gia, std::string mt, bool tt);
+
+    std::string getMaGoi() const;
+    std::string getTenGoi() const;
+    double getTocDo() const;
+    double getGiaThang() const;
+    std::string getMoTa() const;
+    bool getTrangThai() const;
+
+    void setTenGoi(const std::string& ten);
+    void setTocDo(double td);
+    void setGiaThang(double gia);
+    void setMoTa(const std::string& mt);
+    void setTrangThai(bool tt);
+
+    void hienThi() const;
+};
+
+class UC01_GoiInternetService {
+private:
+    std::vector<GoiInternet> danhSachGoi;
+
+public:
+    int timKiemIndex(const std::string& maGoi) const;
+    bool themGoi(const GoiInternet& goi);
+    bool capNhatGoi(const std::string& maGoi, const GoiInternet& goiMoi);
+    bool xoaGoi(const std::string& maGoi);
+    void hienThiDanhSach() const;
+
+    bool docTuFile(const std::string& filePath);
+    bool ghiRaFile(const std::string& filePath) const;
+};
+
+#endif
