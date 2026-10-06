@@ -1,3 +1,4 @@
+
 #ifndef UC01_GOI_INTERNET_HPP
 #define UC01_GOI_INTERNET_HPP
 
@@ -11,7 +12,7 @@ private:
     double tocDo;      // Mbps
     double giaThang;   // VNÐ
     std::string moTa;
-    bool trangThai;    // true: Ho?t d?ng, false: Ng?ng
+    bool trangThai;    // true: Hoat dong, false: Ngung
 
 public:
     GoiInternet();
