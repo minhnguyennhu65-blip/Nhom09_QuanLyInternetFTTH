@@ -1,7 +1,7 @@
 /* =======================================================
  * Tên tác giả: Hoàng Trọng Khoa
  * Mã sinh viên: B24DCVT204
- * Mô tả file: Lớp quản lý Hợp Đồng 
+ * Mô tả file: Lớp quản lý Hợp Đồng
  * ======================================================= */
 
 #ifndef HOP_DONG_H
@@ -18,14 +18,14 @@
 #include <stdexcept>
 #include <string>
 
-// Lớp HopDong kế thừa từ LopCoSo, lưu trữ thông tin giao dịch giữa khách hàng và dịch vụ
+// Lớp HopDong kế thừa LopCoSo; maDinhDanh chính là maHopDong
 class HopDong : public LopCoSo {
-    // Khóa ngoại liên kết đối tượng và dữ liệu hợp đồng
+private:
     std::string maKhachHang, maGoiCuoc, maThietBi, ngayKy, ngayHetHan;
-    std::string trangThai = "Hoat dong"; // Mặc định hợp đồng mới là đang hoạt động
+    std::string trangThai = "Hoat dong"; // Mặc định hợp đồng mới
     double giaThieuDung = 0;
 
-    // Kiểm tra mã định danh tương tự lớp KhachHang
+    // Khớp NhapDuLieu::nhapMaDinhDanh
     static bool hopLeMa(const std::string& s) {
         if (s.empty() || s.find('|') != std::string::npos) return false;
         for (unsigned char c : s)
@@ -33,12 +33,12 @@ class HopDong : public LopCoSo {
         return true;
     }
 
-    // Kiểm tra trạng thái hợp đồng chỉ cho phép 3 giá trị cụ thể
+    // Trạng thái chỉ nhận 3 giá trị cố định
     static bool hopLeTT(const std::string& t) {
         return t == "Hoat dong" || t == "Het han" || t == "Huy";
     }
 
-    // Chuyển chuỗi ngày "DD/MM/YYYY" thành số nguyên YYYYMMDD để dễ so sánh tính trước/sau
+    // Đổi "DD/MM/YYYY" thành YYYYMMDD để so sánh; dùng NhapDuLieu::ngayHopLe (năm 1900-2100)
     static int ngayThanhSo(const std::string& s) {
         if (s.size() != 10 || s[2] != '/' || s[5] != '/') return -1;
         for (int i = 0; i < 10; ++i)
@@ -48,15 +48,37 @@ class HopDong : public LopCoSo {
         return NhapDuLieu::ngayHopLe(d, m, y) ? y * 10000 + m * 100 + d : -1;
     }
 
-    // Hàm tiện ích: Ném ngoại lệ với thông báo lỗi nếu không đạt yêu cầu
     static void yeuCau(bool ok, const std::string& msg) {
         if (!ok) throw std::invalid_argument(msg);
+    }
+
+    // Dùng chung cho thêm mới và cập nhật (cập nhật không đổi mã hợp đồng)
+    void nhapNoiDung(bool nhapMa) {
+        if (nhapMa) maDinhDanh = NhapDuLieu::nhapMaDinhDanh("Nhap ma hop dong (maHD): ");
+        maKhachHang = NhapDuLieu::nhapMaDinhDanh("Nhap ma khach hang: ");
+        maGoiCuoc = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi cuoc: ");
+        maThietBi = NhapDuLieu::nhapMaDinhDanh("Nhap ma thiet bi: ");
+        ngayKy = NhapDuLieu::nhapNgayThang("Nhap ngay ky hop dong (DD/MM/YYYY): ");
+
+        // Ràng buộc nghiệp vụ: ngày hết hạn không được trước ngày ký
+        while (true) {
+            ngayHetHan = NhapDuLieu::nhapNgayThang("Nhap ngay het han hop dong (DD/MM/YYYY): ");
+            if (ngayThanhSo(ngayHetHan) >= ngayThanhSo(ngayKy)) break;
+            std::cout << " -> Loi: Ngay het han phai sau hoac bang ngay ky!\n";
+        }
+
+        giaThieuDung = NhapDuLieu::nhapSoThucDuong("Nhap gia thieu dung hang thang (>= 0): ");
+
+        while (true) {
+            trangThai = NhapDuLieu::nhapChuoi("Nhap trang thai (Hoat dong/Het han/Huy): ");
+            if (hopLeTT(trangThai)) break;
+            std::cout << " -> Loi: Trang thai khong hop le!\n";
+        }
     }
 
 public:
     HopDong() = default;
 
-    // Các hàm Getter
     const std::string& getMaKhachHang() const { return maKhachHang; }
     const std::string& getMaGoiCuoc() const { return maGoiCuoc; }
     const std::string& getMaThietBi() const { return maThietBi; }
@@ -65,35 +87,16 @@ public:
     const std::string& getTrangThai() const { return trangThai; }
     double getGiaThieuDung() const { return giaThieuDung; }
 
-    // Thiết lập trạng thái mới có kiểm tra hợp lệ
     void setTrangThai(const std::string& tt) {
         yeuCau(hopLeTT(tt), "Trang thai hop dong khong hop le: " + tt);
         trangThai = tt;
     }
 
-    // Ghi đè phương thức nhập từ bàn phím
-    void nhapThongTin() override {
-        maDinhDanh = NhapDuLieu::nhapMaDinhDanh("Nhap ma hop dong (maHD): ");
-        maKhachHang = NhapDuLieu::nhapMaDinhDanh("Nhap ma khach hang: ");
-        maGoiCuoc = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi cuoc: ");
-        maThietBi = NhapDuLieu::nhapMaDinhDanh("Nhap ma thiet bi: ");
-        ngayKy = NhapDuLieu::nhapNgayThang("Nhap ngay ky hop dong (DD/MM/YYYY): ");
-        
-        // Ràng buộc nghiệp vụ: Ngày hết hạn không được sớm hơn ngày ký
-        while (true) {
-            ngayHetHan = NhapDuLieu::nhapNgayThang("Nhap ngay het han hop dong (DD/MM/YYYY): ");
-            if (ngayThanhSo(ngayHetHan) >= ngayThanhSo(ngayKy)) break;
-            std::cout << " -> Loi: Ngay het han phai sau hoac bang ngay ky!\n";
-        }
-        
-        giaThieuDung = NhapDuLieu::nhapSoThucDuong("Nhap gia thieu dung hang thang (>= 0): ");
-        
-        while (true) {
-            trangThai = NhapDuLieu::nhapChuoi("Nhap trang thai (Hoat dong/Het han/Huy): ");
-            if (hopLeTT(trangThai)) break;
-            std::cout << " -> Loi: Trang thai khong hop le!\n";
-        }
-    }
+    // Ghi đè: thêm hợp đồng mới (có nhập mã)
+    void nhapThongTin() override { nhapNoiDung(true); }
+
+    // Ghi đè: cập nhật thông tin phụ, không sửa maDinhDanh — bắt buộc vì LopCoSo thuần ảo
+    void capNhatThongTin() override { nhapNoiDung(false); }
 
     void hienThiThongTin() const override {
         std::cout << "Ma HD: " << maDinhDanh << " | Ma KH: " << maKhachHang
@@ -103,49 +106,44 @@ public:
                   << " | Trang thai: " << trangThai << "\n";
     }
 
-    // Chuẩn bị dữ liệu để ghi xuống file, ghép bằng '|'
+    // Ghép chuỗi lưu file; setprecision(15) tránh lệch số thực khi đọc lại
     std::string chuyenThanhChuoi() const override {
         std::ostringstream os;
         os << maDinhDanh << '|' << maKhachHang << '|' << maGoiCuoc << '|'
            << maThietBi << '|' << ngayKy << '|' << ngayHetHan << '|'
-           << std::setprecision(15) << giaThieuDung << '|' << trangThai; // Tránh sai số dấu phẩy động
+           << std::setprecision(15) << giaThieuDung << '|' << trangThai;
         return os.str();
     }
 
-    // Phân tích chuỗi đọc từ file thành thuộc tính của đối tượng
+    // Tách 8 trường (7 dấu '|'); kiểm tra hết rồi mới gán
     void docTuChuoi(const std::string& dong) override {
-        // Đảm bảo chuỗi chứa chính xác 7 dấu '|' tương đương 8 trường dữ liệu
         yeuCau(std::count(dong.begin(), dong.end(), '|') == 7,
                "Dong du lieu HopDong co so cot khong dung.");
-        
+
         std::string f[8];
         std::stringstream ss(dong);
         for (int i = 0; i < 8; ++i) std::getline(ss, f[i], '|');
 
-        // Xác thực các mã định danh
         yeuCau(hopLeMa(f[0]), "Ma hop dong khong hop le: " + f[0]);
         yeuCau(hopLeMa(f[1]), "Ma khach hang khong hop le: " + f[1]);
         yeuCau(hopLeMa(f[2]), "Ma goi cuoc khong hop le: " + f[2]);
         yeuCau(hopLeMa(f[3]), "Ma thiet bi khong hop le: " + f[3]);
-        
-        // Xác thực ngày tháng và ràng buộc logic
+
         int soKy = ngayThanhSo(f[4]), soHet = ngayThanhSo(f[5]);
         yeuCau(soKy >= 0, "Ngay ky khong hop le: " + f[4]);
         yeuCau(soHet >= 0, "Ngay het han khong hop le: " + f[5]);
         yeuCau(soHet >= soKy, "Ngay het han phai sau hoac bang ngay ky.");
         yeuCau(hopLeTT(f[7]), "Trang thai hop dong khong hop le: " + f[7]);
 
-        // Phân tích và xác thực giá thuê dùng an toàn
         std::size_t pos = 0;
         double gia = std::stod(f[6], &pos);
-        // Kiểm tra xem toàn bộ chuỗi có được chuyển đổi thành số hợp lệ và không âm hay không
         yeuCau(pos == f[6].size() && std::isfinite(gia) && gia >= 0,
                "Gia thieu dung khong hop le: " + f[6]);
 
-        // Cập nhật giá trị cho đối tượng
         maDinhDanh = f[0]; maKhachHang = f[1]; maGoiCuoc = f[2]; maThietBi = f[3];
         ngayKy = f[4]; ngayHetHan = f[5]; giaThieuDung = gia; trangThai = f[7];
     }
 };
 
 #endif
+
