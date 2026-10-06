@@ -1,0 +1,217 @@
+#include "../include/UC02_TuyenCap.hpp"
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
+
+// ============================================================================
+// TRI?N KHAI PHUONG TH?C L?P TUYENCAP & SERVICE
+// ============================================================================
+TuyenCap::TuyenCap() : trangThai(true) {}
+
+TuyenCap::TuyenCap(string ma, string ten, string kv, string dau, string cuoi, bool tt)
+    : maTuyen(ma), tenTuyen(ten), khuVuc(kv), diaDiemDau(dau), diaDiemCuoi(cuoi), trangThai(tt) {}
+
+string TuyenCap::getMaTuyen() const { return maTuyen; }
+string TuyenCap::getTenTuyen() const { return tenTuyen; }
+string TuyenCap::getKhuVuc() const { return khuVuc; }
+string TuyenCap::getDiaDiemDau() const { return diaDiemDau; }
+string TuyenCap::getDiaDiemCuoi() const { return diaDiemCuoi; }
+bool TuyenCap::getTrangThai() const { return trangThai; }
+
+void TuyenCap::setTenTuyen(const string& ten) { tenTuyen = ten; }
+void TuyenCap::setKhuVuc(const string& kv) { khuVuc = kv; }
+void TuyenCap::setDiaDiemDau(const string& dau) { diaDiemDau = dau; }
+void TuyenCap::setDiaDiemCuoi(const string& cuoi) { diaDiemCuoi = cuoi; }
+void TuyenCap::setTrangThai(bool tt) { trangThai = tt; }
+
+void TuyenCap::hienThi() const {
+    cout << left 
+         << setw(12) << maTuyen 
+         << setw(20) << tenTuyen 
+         << setw(15) << khuVuc 
+         << setw(15) << diaDiemDau 
+         << setw(15) << diaDiemCuoi 
+         << (trangThai ? "Hoat dong" : "Bao tri") << endl;
+}
+
+int UC02_TuyenCapService::timKiemIndex(const string& maTuyen) const {
+    for (size_t i = 0; i < danhSachTuyen.size(); ++i) {
+        if (danhSachTuyen[i].getMaTuyen() == maTuyen) return i;
+    }
+    return -1;
+}
+
+bool UC02_TuyenCapService::themTuyen(const TuyenCap& tuyen) {
+    if (timKiemIndex(tuyen.getMaTuyen()) != -1) return false;
+    danhSachTuyen.push_back(tuyen);
+    return true;
+}
+
+bool UC02_TuyenCapService::capNhatTuyen(const string& maTuyen, const TuyenCap& tuyenMoi) {
+    int idx = timKiemIndex(maTuyen);
+    if (idx == -1) return false;
+    danhSachTuyen[idx] = tuyenMoi;
+    return true;
+}
+
+bool UC02_TuyenCapService::xoaTuyen(const string& maTuyen) {
+    int idx = timKiemIndex(maTuyen);
+    if (idx == -1) return false;
+    danhSachTuyen.erase(danhSachTuyen.begin() + idx);
+    return true;
+}
+
+void UC02_TuyenCapService::hienThiDanhSach() const {
+    cout << "\n==================== UC02: DANH SACH TUYEN CAP ====================\n";
+    cout << left 
+         << setw(12) << "Ma Tuyen" 
+         << setw(20) << "Ten Tuyen" 
+         << setw(15) << "Khu Vuc" 
+         << setw(15) << "Diem Dau" 
+         << setw(15) << "Diem Cuoi" 
+         << "Trang Thai" << endl;
+    cout << string(88, '-') << endl;
+    for (const auto& tuyen : danhSachTuyen) {
+        tuyen.hienThi();
+    }
+    cout << string(88, '-') << endl;
+}
+
+bool UC02_TuyenCapService::docTuFile(const string& filePath) {
+    ifstream file(filePath);
+    if (!file.is_open()) return false;
+
+    danhSachTuyen.clear();
+    string line;
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+        stringstream ss(line);
+        string ma, ten, kv, dau, cuoi, statusStr;
+
+        getline(ss, ma, '|');
+        getline(ss, ten, '|');
+        getline(ss, kv, '|');
+        getline(ss, dau, '|');
+        getline(ss, cuoi, '|');
+        getline(ss, statusStr, '|');
+
+        if (!ma.empty()) {
+            bool status = (statusStr == "1");
+            danhSachTuyen.push_back(TuyenCap(ma, ten, kv, dau, cuoi, status));
+        }
+    }
+    file.close();
+    return true;
+}
+
+bool UC02_TuyenCapService::ghiRaFile(const string& filePath) const {
+    ofstream file(filePath);
+    if (!file.is_open()) return false;
+
+    for (const auto& tuyen : danhSachTuyen) {
+        file << tuyen.getMaTuyen() << "|"
+             << tuyen.getTenTuyen() << "|"
+             << tuyen.getKhuVuc() << "|"
+             << tuyen.getDiaDiemDau() << "|"
+             << tuyen.getDiaDiemCuoi() << "|"
+             << (tuyen.getTrangThai() ? "1" : "0") << "\n";
+    }
+    file.close();
+    return true;
+}
+
+// ============================================================================
+// HÀM ÐI?U KHI?N CHÍNH (MAIN ENTRY C?A UC02)
+// ============================================================================
+const string PATH_TUYEN = "data/tuyen_cap.txt";
+
+int main() {
+    UC02_TuyenCapService service;
+
+    if (service.docTuFile(PATH_TUYEN)) {
+        cout << "[System] Tai du lieu Tuyen Cap tu file thanh cong!\n";
+    } else {
+        cout << "[System] Khoi tao du lieu Tuyen Cap mac dinh...\n";
+        service.themTuyen(TuyenCap("TC_C2", "Tuyen Cau Giay 01", "Cau Giay", "POP Dich Vong", "Tu POP3", true));
+        service.ghiRaFile(PATH_TUYEN);
+    }
+
+    int choice;
+    do {
+        cout << "\n========== UNG DUNG QUAN LY TUYEN CAP (UC02) ==========\n";
+        cout << "1. Xem danh sach Tuyen Cap\n";
+        cout << "2. Them Tuyen Cap moi\n";
+        cout << "3. Cap nhat Tuyen Cap\n";
+        cout << "4. Xoa Tuyen Cap\n";
+        cout << "0. Luu va Thoat\n";
+        cout << "Chon chuc nang: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                service.hienThiDanhSach();
+                break;
+            case 2: {
+                string ma, ten, kv, dau, cuoi;
+                int st;
+                cout << "Ma tuyen: "; cin >> ma;
+                cin.ignore();
+                cout << "Ten tuyen: "; getline(cin, ten);
+                cout << "Khu vuc: "; getline(cin, kv);
+                cout << "Diem dau: "; getline(cin, dau);
+                cout << "Diem cuoi: "; getline(cin, cuoi);
+                cout << "Trang thai (1: Hoat dong, 0: Bao tri): "; cin >> st;
+
+                if (service.themTuyen(TuyenCap(ma, ten, kv, dau, cuoi, st == 1))) {
+                    service.ghiRaFile(PATH_TUYEN);
+                    cout << ">> Them va luu tuyen cap thanh cong!\n";
+                } else {
+                    cout << ">> Loi: Ma tuyen da ton tai!\n";
+                }
+                break;
+            }
+            case 3: {
+                string ma, ten, kv, dau, cuoi;
+                int st;
+                cout << "Nhap ma tuyen can cap nhat: "; cin >> ma;
+                if (service.timKiemIndex(ma) == -1) {
+                    cout << ">> Khong tim thay ma tuyen!\n";
+                    break;
+                }
+                cin.ignore();
+                cout << "Ten tuyen moi: "; getline(cin, ten);
+                cout << "Khu vuc moi: "; getline(cin, kv);
+                cout << "Diem dau moi: "; getline(cin, dau);
+                cout << "Diem cuoi moi: "; getline(cin, cuoi);
+                cout << "Trang thai (1: Hoat dong, 0: Bao tri): "; cin >> st;
+
+                service.capNhatTuyen(ma, TuyenCap(ma, ten, kv, dau, cuoi, st == 1));
+                service.ghiRaFile(PATH_TUYEN);
+                cout << ">> Cap nhat va luu thanh cong!\n";
+                break;
+            }
+            case 4: {
+                string ma;
+                cout << "Nhap ma tuyen can xoa: "; cin >> ma;
+                if (service.xoaTuyen(ma)) {
+                    service.ghiRaFile(PATH_TUYEN);
+                    cout << ">> Xoa va cap nhat file thanh cong!\n";
+                } else {
+                    cout << ">> Khong tim thay ma tuyen!\n";
+                }
+                break;
+            }
+            case 0:
+                service.ghiRaFile(PATH_TUYEN);
+                cout << "[System] Da luu du lieu UC02 va thoat.\n";
+                break;
+            default:
+                cout << "Lua chon khong hop le!\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
