@@ -1,3 +1,8 @@
+/* =======================================================
+ * Tên tác giả: Trần Ngọc Huy
+ * Mã sinh viên: B24DCVT183
+ * Mô tả file:lớp xem tuyến cáp./
+
 #ifndef UC02_TUYEN_CAP_HPP
 #define UC02_TUYEN_CAP_HPP
 
