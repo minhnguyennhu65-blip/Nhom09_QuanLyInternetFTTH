@@ -1,0 +1,223 @@
+#include "../include/UC01_GoiInternet.hpp"
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
+
+// ============================================================================
+// TRI?N KHAI PHUONG TH?C L?P GOIINTERNET & SERVICE
+// ============================================================================
+GoiInternet::GoiInternet() : tocDo(0), giaThang(0), trangThai(true) {}
+
+GoiInternet::GoiInternet(string ma, string ten, double td, double gia, string mt, bool tt)
+    : maGoi(ma), tenGoi(ten), tocDo(td), giaThang(gia), moTa(mt), trangThai(tt) {}
+
+string GoiInternet::getMaGoi() const { return maGoi; }
+string GoiInternet::getTenGoi() const { return tenGoi; }
+double GoiInternet::getTocDo() const { return tocDo; }
+double GoiInternet::getGiaThang() const { return giaThang; }
+string GoiInternet::getMoTa() const { return moTa; }
+bool GoiInternet::getTrangThai() const { return trangThai; }
+
+void GoiInternet::setTenGoi(const string& ten) { tenGoi = ten; }
+void GoiInternet::setTocDo(double td) { tocDo = td; }
+void GoiInternet::setGiaThang(double gia) { giaThang = gia; }
+void GoiInternet::setMoTa(const string& mt) { moTa = mt; }
+void GoiInternet::setTrangThai(bool tt) { trangThai = tt; }
+
+void GoiInternet::hienThi() const {
+    cout << left 
+         << setw(12) << maGoi 
+         << setw(20) << tenGoi 
+         << setw(12) << (to_string((int)tocDo) + " Mbps")
+         << setw(15) << (to_string((long long)giaThang) + " VND")
+         << setw(18) << (trangThai ? "Hoat dong" : "Ngung hoat dong")
+         << moTa << endl;
+}
+
+int UC01_GoiInternetService::timKiemIndex(const string& maGoi) const {
+    for (size_t i = 0; i < danhSachGoi.size(); ++i) {
+        if (danhSachGoi[i].getMaGoi() == maGoi) return i;
+    }
+    return -1;
+}
+
+bool UC01_GoiInternetService::themGoi(const GoiInternet& goi) {
+    if (timKiemIndex(goi.getMaGoi()) != -1) return false;
+    danhSachGoi.push_back(goi);
+    return true;
+}
+
+bool UC01_GoiInternetService::capNhatGoi(const string& maGoi, const GoiInternet& goiMoi) {
+    int idx = timKiemIndex(maGoi);
+    if (idx == -1) return false;
+    danhSachGoi[idx] = goiMoi;
+    return true;
+}
+
+bool UC01_GoiInternetService::xoaGoi(const string& maGoi) {
+    int idx = timKiemIndex(maGoi);
+    if (idx == -1) return false;
+    danhSachGoi.erase(danhSachGoi.begin() + idx);
+    return true;
+}
+
+void UC01_GoiInternetService::hienThiDanhSach() const {
+    cout << "\n=================== UC01: DANH SACH GOI INTERNET ===================\n";
+    cout << left 
+         << setw(12) << "Ma Goi" 
+         << setw(20) << "Ten Goi" 
+         << setw(12) << "Toc Do" 
+         << setw(15) << "Gia Thang" 
+         << setw(18) << "Trang Thai" 
+         << "Mo Ta" << endl;
+    cout << string(85, '-') << endl;
+    for (const auto& goi : danhSachGoi) {
+        goi.hienThi();
+    }
+    cout << string(85, '-') << endl;
+}
+
+bool UC01_GoiInternetService::docTuFile(const string& filePath) {
+    ifstream file(filePath);
+    if (!file.is_open()) return false;
+
+    danhSachGoi.clear();
+    string line;
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+        stringstream ss(line);
+        string ma, ten, tocDoStr, giaStr, moTa, statusStr;
+
+        getline(ss, ma, '|');
+        getline(ss, ten, '|');
+        getline(ss, tocDoStr, '|');
+        getline(ss, giaStr, '|');
+        getline(ss, moTa, '|');
+        getline(ss, statusStr, '|');
+
+        if (!ma.empty()) {
+            double tocDo = stod(tocDoStr);
+            double gia = stod(giaStr);
+            bool status = (statusStr == "1");
+            danhSachGoi.push_back(GoiInternet(ma, ten, tocDo, gia, moTa, status));
+        }
+    }
+    file.close();
+    return true;
+}
+
+bool UC01_GoiInternetService::ghiRaFile(const string& filePath) const {
+    ofstream file(filePath);
+    if (!file.is_open()) return false;
+
+    for (const auto& goi : danhSachGoi) {
+        file << goi.getMaGoi() << "|"
+             << goi.getTenGoi() << "|"
+             << goi.getTocDo() << "|"
+             << (long long)goi.getGiaThang() << "|"
+             << goi.getMoTa() << "|"
+             << (goi.getTrangThai() ? "1" : "0") << "\n";
+    }
+    file.close();
+    return true;
+}
+
+// ============================================================================
+// HÀM ÐI?U KHI?N CHÍNH (MAIN ENTRY C?A UC01)
+// ============================================================================
+const string PATH_GOI = "data/goi_internet.txt";
+
+int main() {
+    UC01_GoiInternetService service;
+
+    if (service.docTuFile(PATH_GOI)) {
+        cout << "[System] Tai du lieu Goi Internet tu file thanh cong!\n";
+    } else {
+        cout << "[System] Khoi tao du lieu Goi Internet mac dinh...\n";
+        service.themGoi(GoiInternet("NET100", "Goi Gia Dinh 100M", 100, 180000, "Phu hop gia dinh", true));
+        service.ghiRaFile(PATH_GOI);
+    }
+
+    int choice;
+    do {
+        cout << "\n========== UNG DUNG QUAN LY GOI INTERNET (UC01) ==========\n";
+        cout << "1. Xem danh sach Goi Internet\n";
+        cout << "2. Them Goi Internet moi\n";
+        cout << "3. Cap nhat Goi Internet\n";
+        cout << "4. Xoa Goi Internet\n";
+        cout << "0. Luu va Thoat\n";
+        cout << "Chon chuc nang: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                service.hienThiDanhSach();
+                break;
+            case 2: {
+                string ma, ten, moTa;
+                double tocDo, gia;
+                int st;
+                cout << "Ma goi: "; cin >> ma;
+                cin.ignore();
+                cout << "Ten goi: "; getline(cin, ten);
+                cout << "Toc do (Mbps): "; cin >> tocDo;
+                cout << "Gia cuoc (VND): "; cin >> gia;
+                cin.ignore();
+                cout << "Mo ta: "; getline(cin, moTa);
+                cout << "Trang thai (1: Hoat dong, 0: Ngung): "; cin >> st;
+
+                if (service.themGoi(GoiInternet(ma, ten, tocDo, gia, moTa, st == 1))) {
+                    service.ghiRaFile(PATH_GOI);
+                    cout << ">> Them va luu goi internet thanh cong!\n";
+                } else {
+                    cout << ">> Loi: Ma goi da ton tai!\n";
+                }
+                break;
+            }
+            case 3: {
+                string ma, ten, moTa;
+                double tocDo, gia;
+                int st;
+                cout << "Nhap ma goi can cap nhat: "; cin >> ma;
+                if (service.timKiemIndex(ma) == -1) {
+                    cout << ">> Khong tim thay ma goi!\n";
+                    break;
+                }
+                cin.ignore();
+                cout << "Ten goi moi: "; getline(cin, ten);
+                cout << "Toc do moi: "; cin >> tocDo;
+                cout << "Gia moi: "; cin >> gia;
+                cin.ignore();
+                cout << "Mo ta moi: "; getline(cin, moTa);
+                cout << "Trang thai (1: Hoat dong, 0: Ngung): "; cin >> st;
+
+                service.capNhatGoi(ma, GoiInternet(ma, ten, tocDo, gia, moTa, st == 1));
+                service.ghiRaFile(PATH_GOI);
+                cout << ">> Cap nhat va luu thanh cong!\n";
+                break;
+            }
+            case 4: {
+                string ma;
+                cout << "Nhap ma goi can xoa: "; cin >> ma;
+                if (service.xoaGoi(ma)) {
+                    service.ghiRaFile(PATH_GOI);
+                    cout << ">> Xoa va cap nhat file thanh cong!\n";
+                } else {
+                    cout << ">> Khong tim thay ma goi!\n";
+                }
+                break;
+            }
+            case 0:
+                service.ghiRaFile(PATH_GOI);
+                cout << "[System] Da luu du lieu UC01 va thoat.\n";
+                break;
+            default:
+                cout << "Lua chon khong hop le!\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
