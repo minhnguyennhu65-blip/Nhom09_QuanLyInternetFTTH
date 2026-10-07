@@ -1,15 +1,21 @@
+/* =======================================================
+ * Tên tác giả: Nguyễn Đức Huy
+ * Mã sinh viên: B24DCVT176
+ * Mô tả file: Lớp nhân viên kỹ thuật
+ * ======================================================= */
+
 #ifndef NHAN_VIEN_KY_THUAT_H
 #define NHAN_VIEN_KY_THUAT_H
 
 #include "LopCoSo.h"
 #include "NhapDuLieu.h"
 
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <sstream>
-#include <string>
-#include <vector>
 #include <stdexcept>
-#include <cctype>
+#include <string>
 
 class NhanVienKyThuat : public LopCoSo {
 private:
@@ -17,78 +23,180 @@ private:
     std::string soDienThoai;
     std::string chuyenMon;
     std::string khuVucPhuTrach;
-    std::string trangThai;
+    std::string trangThai = "Dang lam";
 
-    bool soDienThoaiHopLe(const std::string& s) const {
-        if (s.length() != 10 || s[0] != '0')
+    // Kiểm tra mã
+    static bool hopLeMa(const std::string& s) {
+        if (s.empty() || s.find('|') != std::string::npos)
             return false;
 
-        for (char c : s) {
-            if (!std::isdigit(static_cast<unsigned char>(c)))
+        for (unsigned char c : s) {
+            if (std::isspace(c) || std::islower(c))
                 return false;
         }
 
         return true;
     }
 
-    bool trangThaiHopLe(const std::string& s) const {
-        return s == "Dang lam" || s == "Nghi";
+    // Kiểm tra chuỗi không rỗng
+    static bool hopLeChuoi(const std::string& s) {
+        return !s.empty() &&
+               s.find('|') == std::string::npos;
+    }
+
+    // Kiểm tra số điện thoại khi đọc từ file
+    static bool hopLeSoDienThoai(const std::string& s) {
+        if (s.length() != 10 || s[0] != '0')
+            return false;
+
+        for (unsigned char c : s) {
+            if (!std::isdigit(c))
+                return false;
+        }
+
+        return true;
+    }
+
+    // Kiểm tra trạng thái
+    static bool hopLeTrangThai(const std::string& tt) {
+        return tt == "Dang lam" ||
+               tt == "Nghi";
+    }
+
+    // Ném ngoại lệ nếu dữ liệu không hợp lệ
+    static void yeuCau(
+        bool dieuKien,
+        const std::string& thongBao) {
+
+        if (!dieuKien)
+            throw std::invalid_argument(thongBao);
     }
 
 public:
-    NhanVienKyThuat()
-        : LopCoSo(),
-          trangThai("Dang lam") {
+    NhanVienKyThuat() = default;
+
+    // Getter
+    const std::string& getHoTen() const {
+        return hoTen;
     }
 
+    const std::string& getSoDienThoai() const {
+        return soDienThoai;
+    }
+
+    const std::string& getChuyenMon() const {
+        return chuyenMon;
+    }
+
+    const std::string& getKhuVucPhuTrach() const {
+        return khuVucPhuTrach;
+    }
+
+    const std::string& getTrangThai() const {
+        return trangThai;
+    }
+
+    // Cập nhật trạng thái
+    void setTrangThai(const std::string& tt) {
+        yeuCau(
+            hopLeTrangThai(tt),
+            "Trang thai nhan vien khong hop le: " + tt
+        );
+
+        trangThai = tt;
+    }
+
+    // Nhập thông tin
     void nhapThongTin() override {
-        std::cout << "\n===== NHAP NHAN VIEN KY THUAT =====\n";
+        maDinhDanh =
+            NhapDuLieu::nhapMaDinhDanh(
+                "Nhap ma nhan vien: "
+            );
+
+        hoTen =
+            NhapDuLieu::nhapChuoi(
+                "Nhap ho ten: "
+            );
+
+        soDienThoai =
+            NhapDuLieu::nhapSoDienThoai(
+                "Nhap so dien thoai: "
+            );
+
+        chuyenMon =
+            NhapDuLieu::nhapChuoi(
+                "Nhap chuyen mon: "
+            );
+
+        khuVucPhuTrach =
+            NhapDuLieu::nhapChuoi(
+                "Nhap khu vuc phu trach: "
+            );
 
         while (true) {
-            maDinhDanh = NhapDuLieu::nhapChuoi(
-                "Nhap ma nhan vien: ");
+            trangThai =
+                NhapDuLieu::nhapChuoi(
+                    "Nhap trang thai (Dang lam/Nghi): "
+                );
 
-            if (maDinhDanh.find('|') == std::string::npos)
+            if (hopLeTrangThai(trangThai))
                 break;
 
-            std::cout << " -> Loi: Ma khong duoc chua '|'.\n";
-        }
-
-        hoTen = NhapDuLieu::nhapChuoi("Nhap ho ten: ");
-
-        while (true) {
-            soDienThoai = NhapDuLieu::nhapChuoi("Nhap so dien thoai: ");
-
-            if (soDienThoaiHopLe(soDienThoai))
-                break;
-
-            std::cout
-                << " -> Loi: So dien thoai phai co 10 chu so "
-                   "va bat dau bang 0.\n";
-        }
-
-        chuyenMon = NhapDuLieu::nhapChuoi("Nhap chuyen mon: ");
-        khuVucPhuTrach = NhapDuLieu::nhapChuoi("Nhap khu vuc phu trach: ");
-        while (true) {
-            trangThai = NhapDuLieu::nhapChuoi(
-                "Nhap trang thai (Dang lam/Nghi): ");
-            if (trangThaiHopLe(trangThai))
-                break;
             std::cout
                 << " -> Loi: Trang thai khong hop le!\n";
         }
     }
 
-    void hienThiThongTin() const override {
-        std::cout << "\n===== NHAN VIEN KY THUAT =====\n";
-        std::cout << "Ma nhan vien: " << maDinhDanh << '\n';
-        std::cout << "Ho ten: " << hoTen << '\n';
-        std::cout << "So dien thoai: " << soDienThoai << '\n';
-        std::cout << "Chuyen mon: " << chuyenMon << '\n';
-        std::cout << "Khu vuc phu trach: "<< khuVucPhuTrach << '\n';
-        std::cout << "Trang thai: " << trangThai << '\n';
+    // Cập nhật thông tin
+    // Không cho phép thay đổi mã nhân viên
+    void capNhatThongTin() override {
+        hoTen =
+            NhapDuLieu::nhapChuoi(
+                "Nhap ho ten moi: "
+            );
+
+        soDienThoai =
+            NhapDuLieu::nhapSoDienThoai(
+                "Nhap so dien thoai moi: "
+            );
+
+        chuyenMon =
+            NhapDuLieu::nhapChuoi(
+                "Nhap chuyen mon moi: "
+            );
+
+        khuVucPhuTrach =
+            NhapDuLieu::nhapChuoi(
+                "Nhap khu vuc phu trach moi: "
+            );
+
+        while (true) {
+            trangThai =
+                NhapDuLieu::nhapChuoi(
+                    "Nhap trang thai moi (Dang lam/Nghi): "
+                );
+
+            if (hopLeTrangThai(trangThai))
+                break;
+
+            std::cout
+                << " -> Loi: Trang thai khong hop le!\n";
+        }
     }
 
+    // Hiển thị thông tin
+    void hienThiThongTin() const override {
+        std::cout
+            << "Ma NV: " << maDinhDanh
+            << " | Ho ten: " << hoTen
+            << " | SDT: " << soDienThoai
+            << " | Chuyen mon: " << chuyenMon
+            << " | Khu vuc: " << khuVucPhuTrach
+            << " | Trang thai: " << trangThai
+            << "\n";
+    }
+
+    // Chuyển thành chuỗi lưu file
     std::string chuyenThanhChuoi() const override {
         return maDinhDanh + "|" +
                hoTen + "|" +
@@ -98,26 +206,48 @@ public:
                trangThai;
     }
 
+    // Đọc dữ liệu từ file
     void docTuChuoi(const std::string& dong) override {
+        yeuCau(
+            std::count(dong.begin(), dong.end(), '|') == 5,
+            "Dong du lieu NhanVienKyThuat co so cot khong dung."
+        );
+
+        std::string f[6];
         std::stringstream ss(dong);
-        std::vector<std::string> f;
-        std::string x;
 
-        while (std::getline(ss, x, '|'))
-            f.push_back(x);
+        for (int i = 0; i < 6; ++i)
+            std::getline(ss, f[i], '|');
 
-        if (f.size() != 6)
-            throw std::invalid_argument("Dong du lieu khong hop le!");
+        yeuCau(
+            hopLeMa(f[0]),
+            "Ma nhan vien khong hop le: " + f[0]
+        );
 
-        for (int i = 0; i < 5; i++) {
-            if (f[i].empty())
-                throw std::invalid_argument("Du lieu khong duoc de trong!");
-        }
-        if (!soDienThoaiHopLe(f[2]))
-            throw std::invalid_argument("So dien thoai khong hop le!");
+        yeuCau(
+            hopLeChuoi(f[1]),
+            "Ho ten khong hop le."
+        );
 
-        if (!trangThaiHopLe(f[5]))
-            throw std::invalid_argument("Trang thai khong hop le!");
+        yeuCau(
+            hopLeSoDienThoai(f[2]),
+            "So dien thoai khong hop le."
+        );
+
+        yeuCau(
+            hopLeChuoi(f[3]),
+            "Chuyen mon khong hop le."
+        );
+
+        yeuCau(
+            hopLeChuoi(f[4]),
+            "Khu vuc phu trach khong hop le."
+        );
+
+        yeuCau(
+            hopLeTrangThai(f[5]),
+            "Trang thai nhan vien khong hop le: " + f[5]
+        );
 
         maDinhDanh = f[0];
         hoTen = f[1];
@@ -125,24 +255,6 @@ public:
         chuyenMon = f[3];
         khuVucPhuTrach = f[4];
         trangThai = f[5];
-    }
-    std::string getMaNhanVien() const {
-        return maDinhDanh;
-    }
-    std::string getHoTen() const {
-        return hoTen;
-    }
-    std::string getSoDienThoai() const {
-        return soDienThoai;
-    }
-    std::string getChuyenMon() const {
-        return chuyenMon;
-    }
-    std::string getKhuVucPhuTrach() const {
-        return khuVucPhuTrach;
-    }
-    std::string getTrangThai() const {
-        return trangThai;
     }
 };
 
