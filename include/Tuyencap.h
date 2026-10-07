@@ -8,7 +8,7 @@
 #define UC02_TUYEN_CAP_H
 
 #include "LopCoSo.h"
-#include "nhap_du_lieu.h"
+#include  "NhapDuLieu.h"
 #include "QuanLyLuuTru.h"
 #include <iostream>
 #include <iomanip>
