@@ -1,3 +1,8 @@
+/* =======================================================
+ * Tên tác giả: Nguyễn Đức Huy
+ * Mã sinh viên: B24DCVT176
+ * Mô tả file: Lớp hóa dơn cước
+ * ======================================================= */
 #ifndef HOA_DON_CUOC_H
 #define HOA_DON_CUOC_H
 
