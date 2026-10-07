@@ -7,7 +7,7 @@
 #ifndef UC01_GOI_INTERNET_H
 #define UC01_GOI_INTERNET_H
 
-#include "lop_co_so.h"
+#include "LopCoSo.h"
 #include "nhap_du_lieu.h"
 #include "QuanLyLuuTru.h"
 #include <iostream>
