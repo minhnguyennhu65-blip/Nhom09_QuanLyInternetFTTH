@@ -9,14 +9,14 @@
 
 #include "lop_co_so.h"
 #include "nhap_du_lieu.h"
+#include "QuanLyLuuTru.h"
 #include <iostream>
 #include <iomanip>
-#include <vector>
-#include <fstream>
+#include <string>
 #include <sstream>
 
 // ============================================================================
-// 1. CLASS DATA MODEL (Kế thừa từ LopCoSo)
+// 1. DATA MODEL: GoiInternet (Kế thừa từ LopCoSo)
 // ============================================================================
 class GoiInternet : public LopCoSo {
 private:
@@ -32,7 +32,7 @@ public:
     GoiInternet(const std::string& ma, const std::string& ten, double td, double gia, const std::string& mt, bool tt)
         : LopCoSo(ma), tenGoi(ten), tocDo(td), giaThang(gia), moTa(mt), trangThai(tt) {}
 
-    // Getters & Setters bổ sung
+    // Getters
     std::string getTenGoi() const { return tenGoi; }
     double getTocDo() const { return tocDo; }
     double getGiaThang() const { return giaThang; }
@@ -61,7 +61,7 @@ public:
     }
 
     void capNhatThongTin() override {
-        std::cout << "--- Cap nhat thông tin cho ma goi: " << maDinhDanh << " ---\n";
+        std::cout << "--- Cap nhat thong tin cho ma goi: " << maDinhDanh << " ---\n";
         tenGoi = NhapDuLieu::nhapChuoi("Nhap ten goi moi: ");
         tocDo = NhapDuLieu::nhapSoThucDuong("Nhap toc do moi (Mbps): ");
         giaThang = NhapDuLieu::nhapSoThucDuong("Nhap gia cuoc moi (VND): ");
@@ -97,60 +97,25 @@ public:
 };
 
 // ============================================================================
-// 2. CLASS SERVICE QUẢN LÝ (CRUD & File IO)
+// 2. SERVICE / CONTROLLER: QuanLyGoiInternet
+// Cap nhut: Su dung QuanLyLuuTru<GoiInternet>
 // ============================================================================
 class QuanLyGoiInternet {
 private:
-    std::vector<GoiInternet> danhSach;
+    QuanLyLuuTru<GoiInternet> luuTru;
 
 public:
-    int timKiemIndex(const std::string& ma) const {
-        for (size_t i = 0; i < danhSach.size(); ++i) {
-            if (danhSach[i].getMaDinhDanh() == ma) return i;
-        }
-        return -1;
-    }
+    // Khởi tạo và tự động load file qua constructor của QuanLyLuuTru
+    QuanLyGoiInternet(const std::string& duongDanFile = "data/goi_internet.txt") 
+        : luuTru(duongDanFile) {}
 
     void themMoi() {
         GoiInternet goi;
         goi.nhapThongTin();
-        if (timKiemIndex(goi.getMaDinhDanh()) != -1) {
-            std::cout << " -> Loi: Ma goi " << goi.getMaDinhDanh() << " da ton tai!\n";
-            return;
-        }
-        danhSach.push_back(goi);
-        std::cout << " -> Them goi internet thanh cong!\n";
-    }
-
-    void capNhat() {
-        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi can cap nhat: ");
-        int idx = timKiemIndex(ma);
-        if (idx == -1) {
-            std::cout << " -> Loi: Khong tim thay ma goi nay!\n";
-            return;
-        }
-        danhSach[idx].capNhatThongTin();
-        std::cout << " -> Cap nhat thong tin thanh cong!\n";
-    }
-
-    void xoa() {
-        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi can xoa: ");
-        int idx = timKiemIndex(ma);
-        if (idx == -1) {
-            std::cout << " -> Loi: Khong tim thay ma goi nay!\n";
-            return;
-        }
-        if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa goi nay không?")) {
-            danhSach.erase(danhSach.begin() + idx);
-            std::cout << " -> Da xoa goi internet thanh cong!\n";
-        }
+        luuTru.themMoi(goi); // QuanLyLuuTru tự kiểm tra trùng mã và tự lưu file
     }
 
     void hienThiDanhSach() const {
-        if (danhSach.empty()) {
-            std::cout << " -> Danh sach goi internet hien dang rong!\n";
-            return;
-        }
         std::cout << "\n============================== DANH SACH GOI INTERNET ==============================\n";
         std::cout << std::left 
                   << std::setw(12) << "Ma Goi" 
@@ -160,38 +125,43 @@ public:
                   << std::setw(16) << "Trang Thai" 
                   << "Mo Ta" << std::endl;
         std::cout << std::string(90, '-') << std::endl;
-        for (const auto& goi : danhSach) {
-            goi.hienThiThongTin();
-        }
+        
+        luuTru.hienThi(); // Gọi hàm hiển thị của QuanLyLuuTru
+        
         std::cout << std::string(90, '-') << std::endl;
     }
 
-    bool docTuFile(const std::string& filePath) {
-        std::ifstream file(filePath);
-        if (!file.is_open()) return false;
-
-        danhSach.clear();
-        std::string line;
-        while (std::getline(file, line)) {
-            if (line.empty()) continue;
-            GoiInternet goi;
-            goi.docTuChuoi(line);
-            danhSach.push_back(goi);
-        }
-        file.close();
-        return true;
+    void capNhat() {
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi can cap nhat: ");
+        luuTru.capNhat(ma); // QuanLyLuuTru tự tìm đối tượng, gọi capNhatThongTin() và lưu file
     }
 
-    bool ghiRaFile(const std::string& filePath) const {
-        std::ofstream file(filePath);
-        if (!file.is_open()) return false;
-
-        for (const auto& goi : danhSach) {
-            file << goi.chuyenThanhChuoi() << "\n";
+    void xoa() {
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi can xoa: ");
+        if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa goi nay không?")) {
+            luuTru.xoaTheoMa(ma); // QuanLyLuuTru tự xóa và lưu file
         }
-        file.close();
-        return true;
+    }
+
+    void timKiem() {
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi can tim: ");
+        GoiInternet* goi = luuTru.timTheoMa(ma);
+        if (goi != nullptr) {
+            std::cout << "\n-> THONG TIN GOI INTERNET TIM THAY:\n";
+            goi->hienThiThongTin();
+        } else {
+            std::cout << " -> Khong tim thay ma goi: " << ma << "\n";
+        }
     }
 };
 
 #endif
+
+
+  
+              
+      
+
+ 
+    
+
