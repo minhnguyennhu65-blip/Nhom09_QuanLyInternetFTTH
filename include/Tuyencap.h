@@ -9,14 +9,14 @@
 
 #include "lop_co_so.h"
 #include "nhap_du_lieu.h"
+#include "QuanLyLuuTru.h"
 #include <iostream>
 #include <iomanip>
-#include <vector>
-#include <fstream>
+#include <string>
 #include <sstream>
 
 // ============================================================================
-// 1. CLASS DATA MODEL (Kế thừa từ LopCoSo)
+// 1. DATA MODEL: TuyenCap (Kế thừa từ LopCoSo)
 // ============================================================================
 class TuyenCap : public LopCoSo {
 private:
@@ -61,7 +61,7 @@ public:
     }
 
     void capNhatThongTin() override {
-        std::cout << "--- Cap nhat thông tin cho tuyen cap: " << maDinhDanh << " ---\n";
+        std::cout << "--- Cap nhat thong tin cho tuyen cap: " << maDinhDanh << " ---\n";
         tenTuyen = NhapDuLieu::nhapChuoi("Nhap ten tuyen moi: ");
         khuVuc = NhapDuLieu::nhapChuoi("Nhap khu vuc moi: ");
         diaDiemDau = NhapDuLieu::nhapChuoi("Nhap dia diem dau moi: ");
@@ -97,60 +97,25 @@ public:
 };
 
 // ============================================================================
-// 2. CLASS SERVICE QUẢN LÝ (CRUD & File IO)
+// 2. SERVICE / CONTROLLER: QuanLyTuyenCap
+// Cập nhật: Sử dụng QuanLyLuuTru<TuyenCap>
 // ============================================================================
 class QuanLyTuyenCap {
 private:
-    std::vector<TuyenCap> danhSach;
+    QuanLyLuuTru<TuyenCap> luuTru;
 
 public:
-    int timKiemIndex(const std::string& ma) const {
-        for (size_t i = 0; i < danhSach.size(); ++i) {
-            if (danhSach[i].getMaDinhDanh() == ma) return i;
-        }
-        return -1;
-    }
+    // Khởi tạo và tự động load file qua constructor của QuanLyLuuTru
+    QuanLyTuyenCap(const std::string& duongDanFile = "data/tuyen_cap.txt") 
+        : luuTru(duongDanFile) {}
 
     void themMoi() {
         TuyenCap tuyen;
         tuyen.nhapThongTin();
-        if (timKiemIndex(tuyen.getMaDinhDanh()) != -1) {
-            std::cout << " -> Loi: Ma tuyen " << tuyen.getMaDinhDanh() << " da ton tai!\n";
-            return;
-        }
-        danhSach.push_back(tuyen);
-        std::cout << " -> Them tuyen cap thanh cong!\n";
-    }
-
-    void capNhat() {
-        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can cap nhat: ");
-        int idx = timKiemIndex(ma);
-        if (idx == -1) {
-            std::cout << " -> Loi: Khong tim thay ma tuyen nay!\n";
-            return;
-        }
-        danhSach[idx].capNhatThongTin();
-        std::cout << " -> Cap nhat thong tin thanh cong!\n";
-    }
-
-    void xoa() {
-        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can xoa: ");
-        int idx = timKiemIndex(ma);
-        if (idx == -1) {
-            std::cout << " -> Loi: Khong tim thay ma tuyen nay!\n";
-            return;
-        }
-        if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa tuyen cap nay không?")) {
-            danhSach.erase(danhSach.begin() + idx);
-            std::cout << " -> Da xoa tuyen cap thanh cong!\n";
-        }
+        luuTru.themMoi(tuyen); // QuanLyLuuTru tự kiểm tra trùng mã và tự lưu file
     }
 
     void hienThiDanhSach() const {
-        if (danhSach.empty()) {
-            std::cout << " -> Danh sach tuyen cap hien dang rong!\n";
-            return;
-        }
         std::cout << "\n================================= DANH SACH TUYEN CAP =================================\n";
         std::cout << std::left 
                   << std::setw(12) << "Ma Tuyen" 
@@ -160,37 +125,33 @@ public:
                   << std::setw(18) << "Diem Cuoi" 
                   << "Trang Thai" << std::endl;
         std::cout << std::string(95, '-') << std::endl;
-        for (const auto& tuyen : danhSach) {
-            tuyen.hienThiThongTin();
-        }
+        
+        luuTru.hienThi(); // Gọi hàm hiển thị của QuanLyLuuTru
+        
         std::cout << std::string(95, '-') << std::endl;
     }
 
-    bool docTuFile(const std::string& filePath) {
-        std::ifstream file(filePath);
-        if (!file.is_open()) return false;
-
-        danhSach.clear();
-        std::string line;
-        while (std::getline(file, line)) {
-            if (line.empty()) continue;
-            TuyenCap tuyen;
-            tuyen.docTuChuoi(line);
-            danhSach.push_back(tuyen);
-        }
-        file.close();
-        return true;
+    void capNhat() {
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can cap nhat: ");
+        luuTru.capNhat(ma); // QuanLyLuuTru tự tìm đối tượng, gọi capNhatThongTin() và lưu file
     }
 
-    bool ghiRaFile(const std::string& filePath) const {
-        std::ofstream file(filePath);
-        if (!file.is_open()) return false;
-
-        for (const auto& tuyen : danhSach) {
-            file << tuyen.chuyenThanhChuoi() << "\n";
+    void xoa() {
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can xoa: ");
+        if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa tuyen cap nay không?")) {
+            luuTru.xoaTheoMa(ma); // QuanLyLuuTru tự xóa và lưu file
         }
-        file.close();
-        return true;
+    }
+
+    void timKiem() {
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can tim: ");
+        TuyenCap* tuyen = luuTru.timTheoMa(ma);
+        if (tuyen != nullptr) {
+            std::cout << "\n-> THONG TIN TUYEN CAP TIM THAY:\n";
+            tuyen->hienThiThongTin();
+        } else {
+            std::cout << " -> Khong tim thay ma tuyen: " << ma << "\n";
+        }
     }
 };
 
