@@ -1,0 +1,5 @@
+KH001|Nguyen Van A|0901234567|Ha Noi|nva@gmail.com
+KH002|Tran Thi B|0912345678|Ho Chi Minh|ttb@gmail.com
+KH003|Le Van C|0987654321|Da Nang|lvc@gmail.com
+KH004|Pham Thi D|0909999999|Can Tho|ptd@gmail.com
+KH005|Hoang Van B|0888888888|Hai Phong|htk@gmail.com
