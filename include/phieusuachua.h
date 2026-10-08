@@ -1,6 +1,6 @@
 /* =========================================================
  * Tên tác giả: Đinh Văn Trường
- * Mã sinh viên: [Điền MSV của Trường vào đây]
+ * Mã sinh viên: B24DCVT362
  * Use Case phụ trách: UC08 (Phiếu sửa chữa / bảo trì)
  * Mô tả file: Lớp quản lý đối tượng Phiếu sửa chữa, kế thừa từ LopCoSo.
  * ========================================================= */
