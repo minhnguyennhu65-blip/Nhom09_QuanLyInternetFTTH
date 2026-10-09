@@ -4,8 +4,8 @@
  * Mô tả file: Use Case 02 - Quản lý Tuyến Cáp
  * ======================================================= */
 
-#ifndef UC02_TUYEN_CAP_H
-#define UC02_TUYEN_CAP_H
+#ifndef TUYEN_CAP_H
+#define TUYEN_CAP_H
 
 #include "LopCoSo.h"
 #include  "NhapDuLieu.h"
