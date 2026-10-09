@@ -1,0 +1,10 @@
+CONG001|OLT Ha Noi 1|16|Ha Noi||Trong
+CONG002|OLT Ha Noi 1|16|Ha Noi|KH001|Dang su dung
+CONG003|OLT Ha Noi 2|32|Cau Giay|KH002|Dang su dung
+CONG004|OLT Da Nang 1|16|Da Nang|KH003|Dang su dung
+CONG005|OLT Ho Chi Minh 1|32|Ho Chi Minh||Hong
+CONG006|OLT Hai Phong 1|16|Hai Phong|KH005|Dang su dung
+CONG007|OLT Can Tho 1|32|Can Tho|KH004|Dang su dung
+CONG008|OLT Hue 1|16|Hue||Trong
+CONG009|OLT Bac Ninh 1|32|Bac Ninh||Trong
+CONG010|OLT Nha Trang 1|16|Khanh Hoa||Hong
