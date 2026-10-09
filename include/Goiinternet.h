@@ -4,8 +4,8 @@
  * Mô tả file: Use Case 01 - Quản lý Gói cước Internet
  * ======================================================= */
 
-#ifndef UC01_GOI_INTERNET_H
-#define UC01_GOI_INTERNET_H
+#ifndef GOI_INTERNET_H
+#define GOI_INTERNET_H
 
 #include "LopCoSo.h"
 #include  "NhapDuLieu.h"
