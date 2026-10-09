@@ -7,13 +7,18 @@
 #ifndef TUYEN_CAP_H
 #define TUYEN_CAP_H
 
-#include "LopCoSo.h"
-#include  "NhapDuLieu.h"
-#include "QuanLyLuuTru.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
-#include <sstream>
+#include <vector>
+#include <stdexcept>
+#include "LopCoSo.h"
+#include "NhapDuLieu.h"
+#include <algorithm>
+#include <cmath>
+#include <cctype>
+#include <filesystem>
+#include "QuanLyLuuTru.h"
 
 class TuyenCap : public LopCoSo {
 private:
@@ -21,162 +26,253 @@ private:
     std::string khuVuc;
     std::string diaDiemDau;
     std::string diaDiemCuoi;
-    bool trangThai;
+    std::string trangThai;  // "Hoat dong" / "Bao tri"
 
-    static std::string trim(const std::string& str) {
-        size_t first = str.find_first_not_of(" \t\r\n");
-        if (first == std::string::npos) return "";
-        size_t last = str.find_last_not_of(" \t\r\n");
-        return str.substr(first, last - first + 1);
+    static const std::vector<std::string>& danhSachTrangThai() {
+        static const std::vector<std::string> ds = {"Hoat dong", "Bao tri"};
+        return ds;
+    }
+
+    // Nhap cac thuoc tinh (khong gom ma dinh danh) - dung chung cho Them va Sua
+    void nhapThuocTinh() {
+        tenTuyen = NhapDuLieu::nhapChuoi("Nhap ten tuyen cap: ");
+        khuVuc = NhapDuLieu::nhapChuoi("Nhap khu vuc phuc vu: ");
+        diaDiemDau = NhapDuLieu::nhapChuoi("Nhap diem dau: ");
+        diaDiemCuoi = NhapDuLieu::nhapChuoi("Nhap diem cuoi: ");
+        trangThai = chonTuDanhSach("Chon trang thai:", danhSachTrangThai());
+    }
+
+    // ===== Ham tien ich noi bo (private) =====
+    static std::vector<std::string> tachTruong(std::string dong) {
+        while (!dong.empty() && (dong.back() == '\r' || dong.back() == '\n')) dong.pop_back();
+        std::vector<std::string> kq;
+        size_t bd = 0;
+        while (true) {
+            size_t vt = dong.find('|', bd);
+            if (vt == std::string::npos) { kq.push_back(dong.substr(bd)); break; }
+            kq.push_back(dong.substr(bd, vt - bd));
+            bd = vt + 1;
+        }
+        return kq;
+    }
+    static void kiemTraKhongRong(const std::string& s, const std::string& ten) {
+        if (s.find_first_not_of(" \t") == std::string::npos)
+            throw std::runtime_error(ten + " khong duoc de trong");
+    }
+    static void kiemTraMa(const std::string& s, const std::string& ten) {
+        kiemTraKhongRong(s, ten);
+        if (s.find_first_of(" \t") != std::string::npos)
+            throw std::runtime_error(ten + " khong duoc chua khoang trang");
+    }
+    static bool thuocDanhSach(const std::string& gt, const std::vector<std::string>& ds) {
+        return std::find(ds.begin(), ds.end(), gt) != ds.end();
+    }
+    static std::string chonTuDanhSach(const std::string& thongBao, const std::vector<std::string>& ds) {
+        std::cout << thongBao << "\n";
+        for (size_t i = 0; i < ds.size(); i++) std::cout << "   " << (i + 1) << ". " << ds[i] << "\n";
+        while (true) {
+            int chon = NhapDuLieu::nhapSoNguyenDuong("   Chon (1-" + std::to_string(ds.size()) + "): ");
+            if (chon >= 1 && chon <= static_cast<int>(ds.size())) return ds[chon - 1];
+            std::cout << " -> Loi: Lua chon khong hop le!\n";
+        }
+    }
+    static std::string catChuoi(const std::string& s, size_t max) {
+        return s.size() <= max ? s : s.substr(0, max - 3) + "...";
     }
 
 public:
-    TuyenCap() : LopCoSo(), trangThai(true) {}
+    TuyenCap() : LopCoSo(), tenTuyen(""), khuVuc(""), diaDiemDau(""), diaDiemCuoi(""), trangThai("") {}
 
-    TuyenCap(const std::string& ma, const std::string& ten, const std::string& kv, const std::string& dau, const std::string& cuoi, bool tt)
-        : LopCoSo(ma), tenTuyen(ten), khuVuc(kv), diaDiemDau(dau), diaDiemCuoi(cuoi), trangThai(tt) {}
-
+    std::string getMaTuyen() const { return maDinhDanh; }
     std::string getTenTuyen() const { return tenTuyen; }
     std::string getKhuVuc() const { return khuVuc; }
     std::string getDiaDiemDau() const { return diaDiemDau; }
     std::string getDiaDiemCuoi() const { return diaDiemCuoi; }
-    bool getTrangThai() const { return trangThai; }
+    std::string getTrangThai() const { return trangThai; }
 
+    // Nhap thong tin moi. Neu ma chua duoc gan (rong) thi hoi ma truoc.
     void nhapThongTin() override {
-        setMaDinhDanh(NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen cap (VD: TC01): "));
-        tenTuyen = NhapDuLieu::nhapChuoi("Nhap ten tuyen cap: ");
-        khuVuc = NhapDuLieu::nhapChuoi("Nhap khu vuc quan ly: ");
-        diaDiemDau = NhapDuLieu::nhapChuoi("Nhap dia diem dau: ");
-        diaDiemCuoi = NhapDuLieu::nhapChuoi("Nhap dia diem cuoi: ");
-        trangThai = NhapDuLieu::xacNhan("Tuyen cap dang hoat dong binh thuong?");
+        if (maDinhDanh.empty()) {
+            maDinhDanh = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen (maTuyen): ");
+        }
+        nhapThuocTinh();
     }
 
-    void hienThiThongTin() const override {
-        std::cout << std::left 
-                  << std::setw(12) << maDinhDanh 
-                  << std::setw(20) << tenTuyen 
-                  << std::setw(15) << khuVuc 
-                  << std::setw(18) << diaDiemDau 
-                  << std::setw(18) << diaDiemCuoi 
-                  << (trangThai ? "Hoat dong" : "Bao tri") << std::endl;
-    }
-
+    // Sua: KHOA ma dinh danh, chi nhap lai cac thuoc tinh con lai
     void capNhatThongTin() override {
-        std::cout << "--- Cap nhat thong tin cho tuyen cap: " << maDinhDanh << " ---\n";
-        tenTuyen = NhapDuLieu::nhapChuoi("Nhap ten tuyen moi: ");
-        khuVuc = NhapDuLieu::nhapChuoi("Nhap khu vuc moi: ");
-        diaDiemDau = NhapDuLieu::nhapChuoi("Nhap dia diem dau moi: ");
-        diaDiemCuoi = NhapDuLieu::nhapChuoi("Nhap dia diem cuoi moi: ");
-        trangThai = NhapDuLieu::xacNhan("Xac nhan trang thai Hoat dong?");
+        std::cout << "(Ma tuyen " << maDinhDanh << " duoc khoa, khong the thay doi)\n";
+        nhapThuocTinh();
+    }
+
+    static void inTieuDeBang() {
+        std::cout << std::left
+                  << std::setw(10) << "Ma tuyen"
+                  << std::setw(22) << "Ten tuyen"
+                  << std::setw(18) << "Khu vuc"
+                  << std::setw(20) << "Diem dau"
+                  << std::setw(20) << "Diem cuoi"
+                  << std::setw(12) << "Trang thai" << "\n"
+                  << std::string(102, '-') << "\n";
+    }
+
+    // Moi doi tuong in thanh 1 dong cua bang
+    void hienThiThongTin() const override {
+        std::cout << std::left
+                  << std::setw(10) << catChuoi(maDinhDanh, 9)
+                  << std::setw(22) << catChuoi(tenTuyen, 21)
+                  << std::setw(18) << catChuoi(khuVuc, 17)
+                  << std::setw(20) << catChuoi(diaDiemDau, 19)
+                  << std::setw(20) << catChuoi(diaDiemCuoi, 19)
+                  << std::setw(12) << trangThai << "\n";
     }
 
     std::string chuyenThanhChuoi() const override {
-        return maDinhDanh + "|" + tenTuyen + "|" + khuVuc + "|" 
-               + diaDiemDau + "|" + diaDiemCuoi + "|" + (trangThai ? "1" : "0");
+        return maDinhDanh + "|" + tenTuyen + "|" + khuVuc + "|" +
+               diaDiemDau + "|" + diaDiemCuoi + "|" + trangThai;
     }
 
+    // Doc 1 dong file. Dong loi -> throw de QuanLyLuuTru bo qua dong do.
     void docTuChuoi(const std::string& dongDuLieu) override {
-        std::stringstream ss(dongDuLieu);
-        std::string token;
-        std::vector<std::string> tokens;
-
-        while (std::getline(ss, token, '|')) {
-            tokens.push_back(trim(token));
+        std::vector<std::string> f = tachTruong(dongDuLieu);
+        if (f.size() != 6) {
+            throw std::runtime_error("Sai so cot (can 6, co " + std::to_string(f.size()) + ")");
+        }
+        kiemTraKhongRong(f[0], "maTuyen");
+        if (f[0].find_first_of(" \t") != std::string::npos) {
+            throw std::runtime_error("maTuyen khong duoc chua khoang trang");
+        }
+        kiemTraKhongRong(f[1], "tenTuyen");
+        kiemTraKhongRong(f[2], "khuVuc");
+        kiemTraKhongRong(f[3], "diaDiemDau");
+        kiemTraKhongRong(f[4], "diaDiemCuoi");
+        if (!thuocDanhSach(f[5], danhSachTrangThai())) {
+            throw std::runtime_error("trangThai khong hop le: " + f[5]);
         }
 
-        // 1. Kiểm tra đủ đúng 6 trường thông tin
-        if (tokens.size() != 6) {
-            throw std::invalid_argument("Du lieu tuyen cap khong du 6 truong thông tin");
-        }
-
-        std::string ma = tokens[0];
-        std::string ten = tokens[1];
-        std::string kv = tokens[2];
-        std::string dau = tokens[3];
-        std::string cuoi = tokens[4];
-        std::string statusStr = tokens[5];
-
-        // 6. Kiểm tra dữ liệu chuỗi bắt buộc
-        if (ma.empty() || ten.empty()) {
-            throw std::invalid_argument("Ma tuyen va Ten tuyen khong duoc de trong!");
-        }
-
-        // 5. Kiểm tra nghiêm ngặt trạng thái "0" / "1"
-        if (statusStr != "0" && statusStr != "1") {
-            throw std::invalid_argument("Trang thai phai la '0' hoac '1'");
-        }
-
-        setMaDinhDanh(ma);
-        tenGoi = ten; // tenTuyen
-        khuVuc = kv;
-        diaDiemDau = dau;
-        diaDiemCuoi = cuoi;
-        trangThai = (statusStr == "1");
+        maDinhDanh = f[0];
+        tenTuyen = f[1];
+        khuVuc = f[2];
+        diaDiemDau = f[3];
+        diaDiemCuoi = f[4];
+        trangThai = f[5];
     }
 };
 
-class QuanLyTuyenCap {
-private:
-    QuanLyLuuTru<TuyenCap> luuTru;
 
-    // 7. Kiểm tra khóa ngoại maTuyen
-    bool kiemTraKhoaNgoai(const std::string& maTuyen) const {
-        return false;
-    }
+// =====================================================
+// MENU USE CASE
+// =====================================================
+namespace UC02 {
 
-public:
-    QuanLyTuyenCap(const std::string& duongDanFile = "data/tuyen_cap.txt") 
-        : luuTru(duongDanFile) {}
+    const std::string FILE_TUYEN_CAP = "data/tuyen_cap.txt";
 
-    void themMoi() {
-        TuyenCap tuyen;
-        tuyen.nhapThongTin();
-        luuTru.themMoi(tuyen);
-    }
-
-    void hienThiDanhSach() const {
-        std::cout << "\n================================= DANH SACH TUYEN CAP =================================\n";
-        std::cout << std::left 
-                  << std::setw(12) << "Ma Tuyen" 
-                  << std::setw(20) << "Ten Tuyen" 
-                  << std::setw(15) << "Khu Vuc" 
-                  << std::setw(18) << "Diem Dau" 
-                  << std::setw(18) << "Diem Cuoi" 
-                  << "Trang Thai" << std::endl;
-        std::cout << std::string(95, '-') << std::endl;
-        luuTru.hienThi();
-        std::cout << std::string(95, '-') << std::endl;
-    }
-
-    void capNhat() {
-        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can cap nhat: ");
-        luuTru.capNhat(ma);
-    }
-
-    void xoa() {
-        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can xoa: ");
-        
-        if (kiemTraKhoaNgoai(ma)) {
-            std::cout << " -> Loi: Khong the xoa! Ma tuyen [" << ma 
-                      << "] dang liên ket voi cac ha tang khac!\n";
+    // 1. THEM: nhap ma -> kiem tra ton tai -> nhap thuoc tinh -> them -> luu file
+    inline void themTuyen(QuanLyLuuTru<TuyenCap>& ql) {
+        std::cout << "\n--- THEM TUYEN CAP ---\n";
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen (maTuyen): ");
+        if (ql.timTheoMa(ma) != nullptr) {
+            std::cout << " -> Loi: Ma tuyen '" << ma << "' da ton tai! Khong them du lieu.\n";
             return;
         }
-
-        if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa tuyen cap nay khong?")) {
-            luuTru.xoaTheoMa(ma);
-        }
+        TuyenCap tuyen;
+        tuyen.setMaDinhDanh(ma);
+        tuyen.nhapThongTin();
+        ql.themMoi(tuyen);
     }
 
-    void timKiem() {
+    // 2. HIEN THI: doc lai tu file -> hien thi dang bang
+    inline void hienThiDanhSach(QuanLyLuuTru<TuyenCap>& ql) {
+        std::cout << "\n--- DANH SACH TUYEN CAP ---\n";
+        ql.docTuFile();
+        if (ql.getDanhSach().empty()) {
+            std::cout << " -> Danh sach rong!\n";
+            return;
+        }
+        TuyenCap::inTieuDeBang();
+        ql.hienThi();
+        std::cout << "Tong so tuyen: " << ql.getDanhSach().size() << "\n";
+    }
+
+    // 3. TIM KIEM: nhap ma -> co thi hien thi, khong thi bao khong tim thay
+    inline void timKiemTuyen(QuanLyLuuTru<TuyenCap>& ql) {
+        std::cout << "\n--- TIM KIEM TUYEN CAP ---\n";
         std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can tim: ");
-        TuyenCap* tuyen = luuTru.timTheoMa(ma);
-        if (tuyen != nullptr) {
-            std::cout << "\n-> THONG TIN TUYEN CAP TIM THAY:\n";
-            tuyen->hienThiThongTin();
+        TuyenCap* tuyen = ql.timTheoMa(ma);
+        if (tuyen == nullptr) {
+            std::cout << " -> Khong tim thay tuyen co ma: " << ma << "\n";
+            return;
+        }
+        TuyenCap::inTieuDeBang();
+        tuyen->hienThiThongTin();
+    }
+
+    // 4. SUA: nhap ma -> tim -> (khong ton tai: bao loi) -> nhap thong tin moi (khoa ma) -> luu file
+    inline void suaTuyen(QuanLyLuuTru<TuyenCap>& ql) {
+        std::cout << "\n--- SUA TUYEN CAP ---\n";
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can sua: ");
+        TuyenCap* tuyen = ql.timTheoMa(ma);
+        if (tuyen == nullptr) {
+            std::cout << " -> Khong tim thay tuyen co ma: " << ma << "\n";
+            return;
+        }
+        std::cout << "Thong tin hien tai:\n";
+        TuyenCap::inTieuDeBang();
+        tuyen->hienThiThongTin();
+        std::cout << "\nNhap thong tin moi:\n";
+        ql.capNhat(ma);
+    }
+
+    // 5. XOA: nhap ma -> tim -> xac nhan -> xoa -> luu file
+    // (Theo bang phan cong hien tai chua co bang nao tham chieu maTuyen nen khong can kiem tra khoa ngoai)
+    inline void xoaTuyen(QuanLyLuuTru<TuyenCap>& ql) {
+        std::cout << "\n--- XOA TUYEN CAP ---\n";
+        std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen can xoa: ");
+        TuyenCap* tuyen = ql.timTheoMa(ma);
+        if (tuyen == nullptr) {
+            std::cout << " -> Khong tim thay tuyen co ma: " << ma << "\n";
+            return;
+        }
+        TuyenCap::inTieuDeBang();
+        tuyen->hienThiThongTin();
+        if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa tuyen nay?")) {
+            ql.xoaTheoMa(ma);
         } else {
-            std::cout << " -> Khong tim thay ma tuyen: " << ma << "\n";
+            std::cout << " -> Da huy thao tac xoa.\n";
         }
     }
-};
+
+    // Menu con UC02
+    inline void chayMenu() {
+        try { std::filesystem::create_directories("data"); } catch (...) {}   // dam bao thu muc data/ ton tai
+        QuanLyLuuTru<TuyenCap> ql(FILE_TUYEN_CAP);   // doc file khi khoi dong (tao file moi neu chua co)
+        while (true) {
+            std::cout << "\n===== UC02 - QUAN LY TUYEN CAP/KHU VUC =====\n"
+                      << "1. Them tuyen cap\n"
+                      << "2. Hien thi danh sach\n"
+                      << "3. Tim kiem theo ma\n"
+                      << "4. Sua thong tin\n"
+                      << "5. Xoa tuyen cap\n"
+                      << "0. Quay lai\n";
+            int chon = NhapDuLieu::nhapSoNguyenDuong("Chon chuc nang: ");
+            switch (chon) {
+                case 1: themTuyen(ql); break;
+                case 2: hienThiDanhSach(ql); break;
+                case 3: timKiemTuyen(ql); break;
+                case 4: suaTuyen(ql); break;
+                case 5: xoaTuyen(ql); break;
+                case 0: return;
+                default: std::cout << " -> Loi: Lua chon khong hop le!\n";
+            }
+        }
+    }
+}
+
 
 #endif
+
+ 
+        
+     
+
+
+         
