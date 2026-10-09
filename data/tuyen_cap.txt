@@ -1,4 +1,4 @@
-TC01|Tuyen Cap Bac Nam|Mien Bac|Ha Noi|Da Nang|1
-TC02|Tuyen Cap Noi Bai|Ha Noi|Tru so Chinh|Sieu dai Noibai|1
-TC03|Tuyen Cap Ha Noi Hai Phong|Mien Bac|Ha Noi|Hai Phong|1
-TC04|Tuyen Cap Vung Tau|Mien Nam|Vung Tau|Cam Ranh|0
+TC01|Tuyen Cap Bac Nam|Mien Bac|Ha Noi|Da Nang|Hoat dong
+TC02|Tuyen Cap Noi Bai|Ha Noi|Tru so Chinh|Sieu dai Noibai|Hoat dong
+TC03|Tuyen Cap Ha Noi Hai Phong|Mien Bac|Ha Noi|Hai PhongHoat dong
+TC04|Tuyen Cap Vung Tau|Mien Nam|Vung Tau|Cam Ranh|Bao tri
