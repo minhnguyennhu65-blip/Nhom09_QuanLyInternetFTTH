@@ -127,6 +127,8 @@ public:
         std::stringstream ss(dong);
         for (int i = 0; i < 6; ++i) std::getline(ss, f[i], '|');
 
+        if (!f[5].empty() && f[5].back() == '\r') f[5].pop_back();
+
         yeuCau(hopLeMa(f[0]), "Ma khach hang khong hop le: " + f[0]);
         yeuCau(hopLeChuoi(f[1]), "Ten khach hang khong hop le.");
         yeuCau(hopLeSDT(f[2]), "So dien thoai khong hop le: " + f[2]);
