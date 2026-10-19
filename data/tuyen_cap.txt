@@ -1,4 +1,10 @@
-TC01|Tuyen Cap Bac Nam|Mien Bac|Ha Noi|Da Nang|Hoat dong
-TC02|Tuyen Cap Noi Bai|Ha Noi|Tru so Chinh|Sieu dai Noibai|Hoat dong
-TC03|Tuyen Cap Ha Noi Hai Phong|Mien Bac|Ha Noi|Hai Phong |Hoat dong
-TC04|Tuyen Cap Vung Tau|Mien Nam|Vung Tau|Cam Ranh|Bao tri
+TC01|Tuyen cap Quang Trung|Quan Ha Dong|Diem dau BX Bus|Diem cuoi Cau To|Hoat dong
+TC02|Tuyen cap Tran Phu|Quan Thanh Xuan|Diem dau Nga Tu So|Diem cuoi Ha Dong|Hoat dong
+TC03|Tuyen cap Cau Giay|Quan Cau Giay|Diem dau Dai hoc QG|Diem cuoi Xuan Thuy|Bao tri
+TC04|Tuyen cap Le Van Luong|Quan Thanh Xuan|Diem dau Hoang Dao Thuy|Diem cuoi Le Van Thiem|Hoat dong
+TC05|Tuyen cap Nguyen Xien|Quan Hoang Mai|Diem dau Nguyen Trai|Diem cuoi Xa La|Hoat dong
+TC06|Tuyen cap Pham Hung|Quan Nam Tu Liem|Diem dau My Dinh|Diem cuoi Pham Van Dong|Bao tri
+TC07|Tuyen cap Xuan Thieu|Quan Cau Giay|Diem dau Cau Giay|Diem cuoi Ho Tung Mau|Hoat dong
+TC08|Tuyen cap Giai Phong|Quan Hai Ba Trung|Diem dau Ben xe So|Diem cuoi Dai Co Viet|Hoat dong
+TC09|Tuyen cap Lang Ha|Quan Dong Da|Diem dau Nga Tu Lang|Diem cuoi Giang Vo|Bao tri
+TC10|Tuyen cap Thai Ha|Quan Dong Da|Diem dau Chua Boc|Diem cuoi Hoang Cau|Hoat dong
