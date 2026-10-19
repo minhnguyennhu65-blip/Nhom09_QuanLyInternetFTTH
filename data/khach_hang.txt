@@ -3,3 +3,8 @@ KH002|Tran Thi B|0912345678|Ho Chi Minh|ttb@gmail.com
 KH003|Le Van C|0987654321|Da Nang|lvc@gmail.com
 KH004|Pham Thi D|0909999999|Can Tho|ptd@gmail.com
 KH005|Hoang Van B|0888888888|Hai Phong|htk@gmail.com
+KH006|Vu Van F|0934567890|Quang Ninh|vvf@gmail.com|Dang su dung
+KH007|Dang Thi G|0945678901|Dong Nai|dtg@gmail.com|Dang su dung
+KH008|Bui Van H|0956789012|Hue|bvh@gmail.com|Dang su dung
+KH009|Ngo Thi I|0967890123|Binh Duong|nti@gmail.com|Dang su dung
+KH010|Dinh Van K|0978901234|Thanh Hoa|dvk@gmail.com|Dang su dung
