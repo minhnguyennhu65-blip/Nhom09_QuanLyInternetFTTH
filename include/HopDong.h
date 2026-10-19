@@ -1,6 +1,5 @@
 #ifndef HOP_DONG_H
 #define HOP_DONG_H
-
 /* =======================================================
  * Tên tác giả: Hoàng Trọng Khoa
  * Mã sinh viên: B24DCVT204
@@ -143,7 +142,7 @@ public:
 
             if (maDinhDanh == "0") {
                 std::cout << " -> Da huy thao tac them hop dong.\n";
-                maDinhDanh = ""; // Xoa ma dinh danh de danh dau huy
+                maDinhDanh = "";
                 return;
             }
 
@@ -151,7 +150,7 @@ public:
                 std::cout << "Ma hop dong khong duoc rong va khong chua ky tu '|'.\n";
             }
             else if (kiemTraKhoaNgoai("data/hop_dong.txt", maDinhDanh)) {
-                std::cout << "Ma hop dong da ton tai trong he thong!\n";
+                std::cout << "Ma hop dong [" << maDinhDanh << "] da ton tai trong data/hop_dong.txt. Nhap lai hoac nhap 0 de huy.\n";
             }
             else {
                 break;
@@ -173,7 +172,7 @@ public:
                 std::cout << "Ma khach hang khong hop le!\n";
             }
             else if (!kiemTraKhoaNgoai("data/khach_hang.txt", maKhachHang)) {
-                std::cout << "Khong tim thay ma khach hang hoac chua co file du lieu. Nhap lai hoac nhap 0 de huy.\n";
+                std::cout << "Ma khach hang [" << maKhachHang << "] khong ton tai trong data/khach_hang.txt. Nhap lai hoac nhap 0 de huy.\n";
             }
             else {
                 break;
@@ -195,7 +194,7 @@ public:
                 std::cout << "Ma goi cuoc khong hop le!\n";
             }
             else if (!kiemTraKhoaNgoai("data/goi_internet.txt", maGoiCuoc)) {
-                std::cout << "Khong tim thay ma goi cuoc hoac chua co file du lieu. Nhap lai hoac nhap 0 de huy.\n";
+                std::cout << "Ma goi cuoc [" << maGoiCuoc << "] khong ton tai trong data/goi_internet.txt. Nhap lai hoac nhap 0 de huy.\n";
             }
             else {
                 break;
@@ -217,7 +216,7 @@ public:
                 std::cout << "Ma thiet bi khong hop le!\n";
             }
             else if (!kiemTraKhoaNgoai("data/thiet_bi.txt", maThietBi)) {
-                std::cout << "Khong tim thay ma thiet bi hoac chua co file du lieu. Nhap lai hoac nhap 0 de huy.\n";
+                std::cout << "Ma thiet bi [" << maThietBi << "] khong ton tai trong data/thiet_bi.txt. Nhap lai hoac nhap 0 de huy.\n";
             }
             else {
                 break;
@@ -322,7 +321,7 @@ public:
 
     void docTuChuoi(const std::string& dong) override {
         if (!kiemTraBanGhiNoiBo(dong)) {
-            return; // Bo qua dong loi/trong am tham khong in roi man hinh
+            return;
         }
         std::stringstream ss(dong);
         std::string giaStr;
