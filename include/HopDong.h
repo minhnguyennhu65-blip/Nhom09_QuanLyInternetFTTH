@@ -1,10 +1,10 @@
-#ifndef HOP_DONG_H
-#define HOP_DONG_H
 /* =======================================================
  * Tên tác giả: Hoàng Trọng Khoa
  * Mã sinh viên: B24DCVT204
  * Mô tả file: Lớp quản lý Hợp Đồng
  * ======================================================= */
+#ifndef HOP_DONG_H
+#define HOP_DONG_H
 
 
 #include "LopCoSo.h"
