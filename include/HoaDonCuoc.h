@@ -8,14 +8,17 @@
 #ifndef HOA_DON_CUOC_H
 #define HOA_DON_CUOC_H
 
+#include "LopCoSo.h"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <iomanip>
 #include <limits>
 #include <regex>
-
-#include "LopCoSo.h"
+#include <fstream>
+#include <cmath>
+#include <cctype>
 
 using namespace std;
 
@@ -28,17 +31,52 @@ private:
     string ngayThanhToan;
     string trangThai;
 
-    // Kiểm tra định dạng tháng cước MM/YYYY.
-    bool kiemTraThangCuoc(const string& thang) const {
-        if (!regex_match(thang, regex(R"((0[1-9]|1[0-2])/[0-9]{4})"))) {
-            return false;
+    // Chuan hoa ma: viet hoa va bo khoang trang.
+    string chuanHoaMa(string ma) const {
+        string ketQua;
+
+        for (unsigned char c : ma) {
+            if (!isspace(c)) {
+                ketQua += static_cast<char>(toupper(c));
+            }
         }
-        return true;
+
+        return ketQua;
     }
 
-    // Kiểm tra ngày theo định dạng DD/MM/YYYY.
+    // Kiem tra chuoi khong rong va khong chua dau phan cach du lieu '|'.
+    bool chuoiHopLe(const string& str) const {
+        if (str.find('|') != string::npos) {
+            return false;
+        }
+
+        for (unsigned char c : str) {
+            if (!isspace(c)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Kiem tra dinh dang ma hoa don.
+    bool maHoaDonHopLe(const string& ma) const {
+        return chuoiHopLe(ma);
+    }
+
+    // Kiem tra dinh dang thang cuoc MM/YYYY.
+    bool kiemTraThangCuoc(const string& thang) const {
+        return regex_match(
+            thang,
+            regex(R"((0[1-9]|1[0-2])/[0-9]{4})")
+        );
+    }
+
+    // Kiem tra ngay DD/MM/YYYY co ton tai tren lich.
     bool kiemTraNgay(const string& ngay) const {
-        if (!regex_match(ngay, regex(R"([0-9]{2}/[0-9]{2}/[0-9]{4})"))) {
+        if (!regex_match(
+                ngay,
+                regex(R"([0-9]{2}/[0-9]{2}/[0-9]{4})"))) {
             return false;
         }
 
@@ -52,7 +90,7 @@ private:
             return false;
         }
 
-        if (m < 1 || m > 12 || d < 1) {
+        if (y < 1 || m < 1 || m > 12 || d < 1) {
             return false;
         }
 
@@ -61,9 +99,9 @@ private:
             31, 31, 30, 31, 30, 31
         };
 
-        // Kiểm tra năm nhuận.
-        bool namNhuan = (y % 400 == 0) ||
-                        (y % 4 == 0 && y % 100 != 0);
+        bool namNhuan =
+            (y % 400 == 0) ||
+            (y % 4 == 0 && y % 100 != 0);
 
         if (namNhuan) {
             soNgayTrongThang[1] = 29;
@@ -72,16 +110,53 @@ private:
         return d <= soNgayTrongThang[m - 1];
     }
 
-    // Kiểm tra trạng thái hóa đơn.
+    // Kiem tra trang thai hoa don.
     bool kiemTraTrangThai(const string& tt) const {
         return tt == "Chua thanh toan" ||
                tt == "Da thanh toan" ||
                tt == "Qua han";
     }
 
-    // Kiểm tra dữ liệu hiện tại của hóa đơn.
+    // Kiem tra ma hop dong co ton tai trong file hop dong khong.
+    // Ma dinh danh cua HopDong nam o truong dau tien.
+    bool kiemTraHopDongTonTai(const string& ma) const {
+        if (!chuoiHopLe(ma)) {
+            return false;
+        }
+
+        ifstream file("data/hop_dong.txt");
+
+        if (!file.is_open()) {
+            return false;
+        }
+
+        const string maCanTim = chuanHoaMa(ma);
+        string dong;
+
+        while (getline(file, dong)) {
+            if (dong.empty() || dong[0] == '#') {
+                continue;
+            }
+
+            stringstream ss(dong);
+            string maTrongFile;
+
+            if (getline(ss, maTrongFile, '|') &&
+                chuanHoaMa(maTrongFile) == maCanTim) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Kiem tra toan bo du lieu cua hoa don.
     bool kiemTraDuLieu() const {
-        if (maHopDong.empty()) {
+        if (!maHoaDonHopLe(maDinhDanh)) {
+            return false;
+        }
+
+        if (!chuoiHopLe(maHopDong)) {
             return false;
         }
 
@@ -89,7 +164,7 @@ private:
             return false;
         }
 
-        if (soTien < 0) {
+        if (!isfinite(soTien) || soTien < 0) {
             return false;
         }
 
@@ -97,7 +172,6 @@ private:
             return false;
         }
 
-        // Ngày thanh toán có thể để trống nếu chưa thanh toán.
         if (!ngayThanhToan.empty() &&
             !kiemTraNgay(ngayThanhToan)) {
             return false;
@@ -110,10 +184,81 @@ private:
         return true;
     }
 
+    // Nhap ma hop dong va kiem tra khoa ngoai.
+    // Nguoi dung co the nhap lai neu ma khong ton tai.
+    string nhapMaHopDong() const {
+        string ma;
+
+        while (true) {
+            cout << "Nhap ma hop dong: ";
+            getline(cin, ma);
+
+            ma = chuanHoaMa(ma);
+
+            if (!chuoiHopLe(ma)) {
+                cout << "Loi: Ma hop dong khong duoc rong "
+                     << "hoac chua ky tu '|'.\n";
+                continue;
+            }
+
+            if (!kiemTraHopDongTonTai(ma)) {
+                cout << "Loi: Ma hop dong [" << ma
+                     << "] khong ton tai trong data/hop_dong.txt. "
+                     << "Vui long nhap lai.\n";
+                continue;
+            }
+
+            return ma;
+        }
+    }
+
+    // Nhap mot ngay hop le.
+    string nhapNgay(const string& loiNhac) const {
+        string ngay;
+
+        while (true) {
+            cout << loiNhac;
+            getline(cin, ngay);
+
+            if (kiemTraNgay(ngay)) {
+                return ngay;
+            }
+
+            cout << "Loi: Ngay khong hop le. "
+                 << "Vui long nhap theo DD/MM/YYYY.\n";
+        }
+    }
+
+    // Nhap so tien khong am.
+    double nhapSoTien() const {
+        double tien;
+
+        while (true) {
+            cout << "Nhap so tien cuoc: ";
+
+            if (cin >> tien &&
+                isfinite(tien) &&
+                tien >= 0) {
+                cin.ignore(
+                    numeric_limits<streamsize>::max(), '\n'
+                );
+                return tien;
+            }
+
+            cout << "Loi: So tien phai la mot so khong am.\n";
+
+            cin.clear();
+            cin.ignore(
+                numeric_limits<streamsize>::max(), '\n'
+            );
+        }
+    }
+
 public:
-    // Hàm khởi tạo mặc định.
+    // Khoi tao mac dinh.
     HoaDonCuoc()
-        : maHopDong(""),
+        : LopCoSo(),
+          maHopDong(""),
           thangCuoc(""),
           soTien(0),
           ngayLap(""),
@@ -121,205 +266,292 @@ public:
           trangThai("Chua thanh toan") {
     }
 
-    // Lấy mã hợp đồng liên kết với hóa đơn.
+    // GETTER
     string getMaHopDong() const {
         return maHopDong;
     }
 
-    // Lấy tháng cước.
     string getThangCuoc() const {
         return thangCuoc;
     }
 
-    // Lấy số tiền cước.
     double getSoTien() const {
         return soTien;
     }
 
-    // Lấy ngày lập hóa đơn.
     string getNgayLap() const {
         return ngayLap;
     }
 
-    // Lấy ngày thanh toán.
     string getNgayThanhToan() const {
         return ngayThanhToan;
     }
 
-    // Lấy trạng thái hóa đơn.
     string getTrangThai() const {
         return trangThai;
     }
 
-    // Cập nhật mã hợp đồng.
-    void setMaHopDong(const string& ma) {
-        maHopDong = ma;
+    // SETTER ma hop dong co kiem tra ton tai.
+    bool setMaHopDong(const string& ma) {
+        string maChuanHoa = chuanHoaMa(ma);
+
+        if (!chuoiHopLe(maChuanHoa) ||
+            !kiemTraHopDongTonTai(maChuanHoa)) {
+            return false;
+        }
+
+        maHopDong = maChuanHoa;
+        return true;
     }
 
-    // Nhập thông tin hóa đơn cước.
+    // NHAP THONG TIN HOA DON.
     void nhapThongTin() override {
-        LopCoSo::nhapThongTin();
+        // Nhap ma hoa don.
+        while (true) {
+            cout << "Nhap ma hoa don: ";
+            getline(cin >> ws, maDinhDanh);
 
-        cout << "Nhap ma hop dong: ";
-        getline(cin, maHopDong);
+            maDinhDanh = chuanHoaMa(maDinhDanh);
 
-        do {
+            if (!maHoaDonHopLe(maDinhDanh)) {
+                cout << "Loi: Ma hoa don khong duoc rong "
+                     << "hoac chua ky tu '|'.\n";
+                continue;
+            }
+
+            break;
+        }
+
+        // Nhap ma hop dong co kiem tra khoa ngoai.
+        maHopDong = nhapMaHopDong();
+
+        // Nhap thang cuoc.
+        while (true) {
             cout << "Nhap thang cuoc (MM/YYYY): ";
             getline(cin, thangCuoc);
 
-            if (!kiemTraThangCuoc(thangCuoc)) {
-                cout << "Thang cuoc khong hop le. Vui long nhap lai.\n";
+            if (kiemTraThangCuoc(thangCuoc)) {
+                break;
             }
-        } while (!kiemTraThangCuoc(thangCuoc));
 
-        do {
-            cout << "Nhap so tien cuoc: ";
-            cin >> soTien;
-
-            if (cin.fail() || soTien < 0) {
-                cout << "So tien khong hop le. Vui long nhap lai.\n";
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                soTien = -1;
-            } else {
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            }
-        } while (soTien < 0);
-
-        do {
-            cout << "Nhap ngay lap (DD/MM/YYYY): ";
-            getline(cin, ngayLap);
-
-            if (!kiemTraNgay(ngayLap)) {
-                cout << "Ngay lap khong hop le. Vui long nhap lai.\n";
-            }
-        } while (!kiemTraNgay(ngayLap));
-
-        cout << "Nhap ngay thanh toan (DD/MM/YYYY, bo trong neu chua thanh toan): ";
-        getline(cin, ngayThanhToan);
-
-        while (!ngayThanhToan.empty() &&
-               !kiemTraNgay(ngayThanhToan)) {
-            cout << "Ngay thanh toan khong hop le. Nhap lai: ";
-            getline(cin, ngayThanhToan);
+            cout << "Loi: Thang cuoc khong hop le.\n";
         }
 
-        cout << "Trang thai (Chua thanh toan/Da thanh toan/Qua han): ";
-        getline(cin, trangThai);
+        // Nhap so tien.
+        soTien = nhapSoTien();
 
-        while (!kiemTraTrangThai(trangThai)) {
-            cout << "Trang thai khong hop le. Nhap lai: ";
+        // Nhap ngay lap.
+        ngayLap = nhapNgay("Nhap ngay lap (DD/MM/YYYY): ");
+
+        // Nhap ngay thanh toan; co the de trong.
+        while (true) {
+            cout << "Nhap ngay thanh toan "
+                 << "(DD/MM/YYYY, bo trong neu chua thanh toan): ";
+            getline(cin, ngayThanhToan);
+
+            if (ngayThanhToan.empty() ||
+                kiemTraNgay(ngayThanhToan)) {
+                break;
+            }
+
+            cout << "Loi: Ngay thanh toan khong hop le.\n";
+        }
+
+        // Nhap trang thai.
+        while (true) {
+            cout << "Trang thai "
+                 << "(Chua thanh toan/Da thanh toan/Qua han): ";
             getline(cin, trangThai);
+
+            if (kiemTraTrangThai(trangThai)) {
+                break;
+            }
+
+            cout << "Loi: Trang thai khong hop le.\n";
         }
     }
 
-    // Cập nhật thông tin hóa đơn.
+    // CAP NHAT THONG TIN HOA DON.
+    // Ma dinh danh hoa don khong thay doi.
     void capNhatThongTin() override {
-        cout << "\n--- CAP NHAT HOA DON CUOC ---\n";
-
         string input;
 
-        cout << "Ma hop dong hien tai: " << maHopDong
-             << "\nNhap ma hop dong moi (Enter de giu nguyen): ";
-        getline(cin, input);
-        if (!input.empty()) {
+        cout << "\n--- CAP NHAT HOA DON CUOC ---\n";
+
+        // Cap nhat ma hop dong.
+        while (true) {
+            cout << "Ma hop dong hien tai: " << maHopDong
+                 << "\nNhap ma hop dong moi "
+                 << "(Enter de giu nguyen): ";
+            getline(cin, input);
+
+            if (input.empty()) {
+                break;
+            }
+
+            input = chuanHoaMa(input);
+
+            if (!chuoiHopLe(input)) {
+                cout << "Loi: Ma hop dong khong hop le.\n";
+                continue;
+            }
+
+            if (!kiemTraHopDongTonTai(input)) {
+                cout << "Loi: Ma hop dong [" << input
+                     << "] khong ton tai trong data/hop_dong.txt.\n";
+                continue;
+            }
+
             maHopDong = input;
+            break;
         }
 
-        cout << "Thang cuoc hien tai: " << thangCuoc
-             << "\nNhap thang cuoc moi (Enter de giu nguyen): ";
-        getline(cin, input);
-        if (!input.empty()) {
-            while (!kiemTraThangCuoc(input)) {
-                cout << "Thang cuoc khong hop le. Nhap lai: ";
-                getline(cin, input);
+        // Cap nhat thang cuoc.
+        while (true) {
+            cout << "Thang cuoc hien tai: " << thangCuoc
+                 << "\nNhap thang cuoc moi "
+                 << "(Enter de giu nguyen): ";
+            getline(cin, input);
+
+            if (input.empty()) {
+                break;
             }
-            thangCuoc = input;
+
+            if (kiemTraThangCuoc(input)) {
+                thangCuoc = input;
+                break;
+            }
+
+            cout << "Loi: Thang cuoc khong hop le.\n";
         }
 
-        cout << "So tien hien tai: " << soTien
-             << "\nNhap so tien moi (-1 de giu nguyen): ";
+        // Cap nhat so tien.
+        while (true) {
+            cout << "So tien hien tai: " << soTien
+                 << "\nNhap so tien moi "
+                 << "(-1 de giu nguyen): ";
 
-        double tienMoi;
-        cin >> tienMoi;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            double tienMoi;
 
-        while (cin.fail() || (tienMoi < 0 && tienMoi != -1)) {
+            if (cin >> tienMoi && isfinite(tienMoi) &&
+                (tienMoi == -1 || tienMoi >= 0)) {
+                cin.ignore(
+                    numeric_limits<streamsize>::max(), '\n'
+                );
+
+                if (tienMoi >= 0) {
+                    soTien = tienMoi;
+                }
+
+                break;
+            }
+
+            cout << "Loi: So tien khong hop le.\n";
             cin.clear();
-            cout << "So tien khong hop le. Nhap lai: ";
-            cin >> tienMoi;
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.ignore(
+                numeric_limits<streamsize>::max(), '\n'
+            );
         }
 
-        if (tienMoi >= 0) {
-            soTien = tienMoi;
-        }
+        // Cap nhat ngay lap.
+        while (true) {
+            cout << "Ngay lap hien tai: " << ngayLap
+                 << "\nNhap ngay lap moi "
+                 << "(Enter de giu nguyen): ";
+            getline(cin, input);
 
-        cout << "Ngay lap hien tai: " << ngayLap
-             << "\nNhap ngay lap moi (Enter de giu nguyen): ";
-        getline(cin, input);
-
-        if (!input.empty()) {
-            while (!kiemTraNgay(input)) {
-                cout << "Ngay lap khong hop le. Nhap lai: ";
-                getline(cin, input);
+            if (input.empty()) {
+                break;
             }
-            ngayLap = input;
-        }
 
-        cout << "Ngay thanh toan hien tai: "
-             << (ngayThanhToan.empty() ? "Chua thanh toan" : ngayThanhToan)
-             << "\nNhap ngay thanh toan moi (Enter de giu nguyen, nhap '-' de xoa): ";
-        getline(cin, input);
-
-        if (input == "-") {
-            ngayThanhToan = "";
-        } else if (!input.empty()) {
-            while (!kiemTraNgay(input)) {
-                cout << "Ngay thanh toan khong hop le. Nhap lai: ";
-                getline(cin, input);
+            if (kiemTraNgay(input)) {
+                ngayLap = input;
+                break;
             }
-            ngayThanhToan = input;
+
+            cout << "Loi: Ngay lap khong hop le.\n";
         }
 
-        cout << "Trang thai hien tai: " << trangThai
-             << "\nNhap trang thai moi (Enter de giu nguyen): ";
-        getline(cin, input);
+        // Cap nhat ngay thanh toan.
+        while (true) {
+            cout << "Ngay thanh toan hien tai: "
+                 << (ngayThanhToan.empty()
+                     ? "Chua thanh toan" : ngayThanhToan)
+                 << "\nNhap ngay thanh toan moi "
+                 << "(Enter de giu nguyen, '-' de xoa): ";
+            getline(cin, input);
 
-        if (!input.empty()) {
-            while (!kiemTraTrangThai(input)) {
-                cout << "Trang thai khong hop le. Nhap lai: ";
-                getline(cin, input);
+            if (input.empty()) {
+                break;
             }
-            trangThai = input;
+
+            if (input == "-") {
+                ngayThanhToan = "";
+                break;
+            }
+
+            if (kiemTraNgay(input)) {
+                ngayThanhToan = input;
+                break;
+            }
+
+            cout << "Loi: Ngay thanh toan khong hop le.\n";
         }
+
+        // Cap nhat trang thai.
+        while (true) {
+            cout << "Trang thai hien tai: " << trangThai
+                 << "\nNhap trang thai moi "
+                 << "(Enter de giu nguyen): ";
+            getline(cin, input);
+
+            if (input.empty()) {
+                break;
+            }
+
+            if (kiemTraTrangThai(input)) {
+                trangThai = input;
+                break;
+            }
+
+            cout << "Loi: Trang thai khong hop le.\n";
+        }
+
+        cout << " -> Da cap nhat thong tin hoa don.\n";
     }
 
-    // Hiển thị thông tin hóa đơn.
+    // HIEN THI THONG TIN HOA DON.
     void hienThiThongTin() const override {
-        LopCoSo::hienThiThongTin();
-
         cout << left
-             << setw(22) << "Ma hop dong: " << maHopDong << '\n'
-             << setw(22) << "Thang cuoc: " << thangCuoc << '\n'
-             << setw(22) << "So tien: " << fixed << setprecision(2)
-             << soTien << '\n'
-             << setw(22) << "Ngay lap: " << ngayLap << '\n'
+             << setw(22) << "Ma hoa don: "
+             << maDinhDanh << '\n'
+             << setw(22) << "Ma hop dong: "
+             << maHopDong << '\n'
+             << setw(22) << "Thang cuoc: "
+             << thangCuoc << '\n'
+             << setw(22) << "So tien: "
+             << fixed << setprecision(2) << soTien << '\n'
+             << setw(22) << "Ngay lap: "
+             << ngayLap << '\n'
              << setw(22) << "Ngay thanh toan: "
-             << (ngayThanhToan.empty() ? "Chua thanh toan" : ngayThanhToan)
+             << (ngayThanhToan.empty()
+                 ? "Chua thanh toan" : ngayThanhToan)
              << '\n'
-             << setw(22) << "Trang thai: " << trangThai << '\n';
+             << setw(22) << "Trang thai: "
+             << trangThai << '\n';
+
+        cout << "----------------------------------------\n";
     }
 
-    // Chuyển dữ liệu hóa đơn thành một dòng để lưu file.
-    // Định dạng gồm 7 trường, phân cách bằng dấu '|'.
-    string chuyenThanhDong() const override {
+    // CHUYEN DU LIEU THANH CHUOI DE LUU FILE.
+    // Dinh dang 7 truong, phan cach bang '|'.
+    string chuyenThanhChuoi() const override {
         stringstream ss;
 
-        ss << LopCoSo::chuyenThanhDong() << '|'
+        ss << maDinhDanh << '|'
            << maHopDong << '|'
            << thangCuoc << '|'
-           << soTien << '|'
+           << setprecision(15) << soTien << '|'
            << ngayLap << '|'
            << ngayThanhToan << '|'
            << trangThai;
@@ -327,46 +559,70 @@ public:
         return ss.str();
     }
 
-    // Đọc thông tin hóa đơn từ một dòng trong file.
-    bool docTuDong(const string& dong) override {
-        stringstream ss(dong);
-        string ma, thang, tien, lap, thanhToan, tt;
-        string maCoSo;
+    // DOC DU LIEU TU CHUOI.
+    // Dinh dang phai khop voi chuyenThanhChuoi().
+    void docTuChuoi(const string& dongDuLieu) override {
+        stringstream ss(dongDuLieu);
 
-        if (!getline(ss, maCoSo, '|') ||
-            !getline(ss, ma, '|') ||
+        string maHoaDon;
+        string maHD;
+        string thang;
+        string tien;
+        string lap;
+        string thanhToan;
+        string tt;
+        string duThua;
+
+        if (!getline(ss, maHoaDon, '|') ||
+            !getline(ss, maHD, '|') ||
             !getline(ss, thang, '|') ||
             !getline(ss, tien, '|') ||
             !getline(ss, lap, '|') ||
             !getline(ss, thanhToan, '|') ||
             !getline(ss, tt)) {
-            return false;
+            return;
         }
+
+        // Khong chap nhan them truong ngoai dinh dang 7 truong.
+        if (getline(ss, duThua, '|')) {
+            return;
+        }
+
+        double tienDoc;
 
         try {
-            size_t viTri;
-            double tienDoc = stod(tien, &viTri);
+            size_t viTri = 0;
+            tienDoc = stod(tien, &viTri);
 
-            if (viTri != tien.size() || tienDoc < 0) {
-                return false;
+            if (viTri != tien.size() ||
+                !isfinite(tienDoc) ||
+                tienDoc < 0) {
+                return;
             }
-
-            // Đọc phần dữ liệu cơ sở theo cấu trúc của lớp cha.
-            if (!LopCoSo::docTuDong(maCoSo)) {
-                return false;
-            }
-
-            maHopDong = ma;
-            thangCuoc = thang;
-            soTien = tienDoc;
-            ngayLap = lap;
-            ngayThanhToan = thanhToan;
-            trangThai = tt;
-
-            return kiemTraDuLieu();
         } catch (...) {
-            return false;
+            return;
         }
+
+        maHoaDon = chuanHoaMa(maHoaDon);
+        maHD = chuanHoaMa(maHD);
+
+        // Kiem tra tinh hop le cua du lieu truoc khi gan.
+        if (!maHoaDonHopLe(maHoaDon) ||
+            !chuoiHopLe(maHD) ||
+            !kiemTraThangCuoc(thang) ||
+            !kiemTraNgay(lap) ||
+            (!thanhToan.empty() && !kiemTraNgay(thanhToan)) ||
+            !kiemTraTrangThai(tt)) {
+            return;
+        }
+
+        maDinhDanh = maHoaDon;
+        maHopDong = maHD;
+        thangCuoc = thang;
+        soTien = tienDoc;
+        ngayLap = lap;
+        ngayThanhToan = thanhToan;
+        trangThai = tt;
     }
 };
 
