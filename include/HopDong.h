@@ -95,23 +95,23 @@ public:
     // Ghi đè: thêm hợp đồng mới (có nhập mã)
     void nhapThongTin() override { nhapNoiDung(true); }
 
-    // Ghi đè: cập nhật thông tin phụ, không sửa maDinhDanh — bắt buộc vì LopCoSo thuần ảo
+    // Ghi đè: cập nhật thông tin phụ, không sửa maDinhDanh
     void capNhatThongTin() override { nhapNoiDung(false); }
 
     void hienThiThongTin() const override {
         std::cout << "Ma HD: " << maDinhDanh << " | Ma KH: " << maKhachHang
                   << " | Ma Goi: " << maGoiCuoc << " | Ma TB: " << maThietBi
                   << " | Ngay ky: " << ngayKy << " | Ngay het han: " << ngayHetHan
-                  << " | Gia thieu dung: " << giaThieuDung
+                  << " | Gia thieu dung: " << std::fixed << std::setprecision(0) << giaThieuDung << " VND"
                   << " | Trang thai: " << trangThai << "\n";
     }
 
-    // Ghép chuỗi lưu file; setprecision(15) tránh lệch số thực khi đọc lại
+    // Ghép chuỗi lưu file; setprecision(0) và fixed để lưu số tiền dưới dạng số nguyên
     std::string chuyenThanhChuoi() const override {
         std::ostringstream os;
         os << maDinhDanh << '|' << maKhachHang << '|' << maGoiCuoc << '|'
            << maThietBi << '|' << ngayKy << '|' << ngayHetHan << '|'
-           << std::setprecision(15) << giaThieuDung << '|' << trangThai;
+           << std::fixed << std::setprecision(0) << giaThieuDung << '|' << trangThai;
         return os.str();
     }
 
@@ -133,12 +133,22 @@ public:
         yeuCau(soKy >= 0, "Ngay ky khong hop le: " + f[4]);
         yeuCau(soHet >= 0, "Ngay het han khong hop le: " + f[5]);
         yeuCau(soHet >= soKy, "Ngay het han phai sau hoac bang ngay ky.");
+
+        // Xóa ký tự \r ở cuối trạng thái (nếu có do đọc file trên Windows)
+        if (!f[7].empty() && f[7].back() == '\r') {
+            f[7].pop_back();
+        }
         yeuCau(hopLeTT(f[7]), "Trang thai hop dong khong hop le: " + f[7]);
 
-        std::size_t pos = 0;
-        double gia = std::stod(f[6], &pos);
-        yeuCau(pos == f[6].size() && std::isfinite(gia) && gia >= 0,
-               "Gia thieu dung khong hop le: " + f[6]);
+        double gia = -1;
+        try {
+            std::size_t pos = 0;
+            gia = std::stod(f[6], &pos);
+            yeuCau(pos == f[6].size() && std::isfinite(gia) && gia >= 0,
+                   "Gia thieu dung khong hop le: " + f[6]);
+        } catch (...) {
+            yeuCau(false, "Gia thieu dung bi loi dinh dang: " + f[6]);
+        }
 
         maDinhDanh = f[0]; maKhachHang = f[1]; maGoiCuoc = f[2]; maThietBi = f[3];
         ngayKy = f[4]; ngayHetHan = f[5]; giaThieuDung = gia; trangThai = f[7];
@@ -146,4 +156,3 @@ public:
 };
 
 #endif
-
