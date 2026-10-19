@@ -1,4 +1,15 @@
-NET100|Goi Home Eco|100|220000|Goi tiet kiem phu hop gia dinh nho|Dang hoat dong
-NET250|Goi Home Super|250|350000|Toc do cao cho choi game va livestream|Dang hoat dong
-NET500|Goi Home VIP|500|600000|Kem truyen hinh 4K va IP tinh|Dang hoat dong
-NET50|Goi Cu|50|150000|Goi bang thong thap da ngung kinh doanh|Ngung
+MG01|Goi Eco 30Mbps|30|120000|Goi cuoc co ban cho hoc sinh sinh vien|Dang hoat dong
+MG02|Goi Basic 50Mbps|50|160000|Goi cuoc pho thong cho gia dinh nho|Dang hoat dong
+MG03|Goi Family 80Mbps|80|220000|Goi cuoc tieu chuan cho ho gia dinh|Dang hoat dong
+MG04|Goi Fast 100Mbps|100|270000|Goi toc do cao cho giai tri va lam viec|Dang hoat dong
+MG05|Goi Super 150Mbps|150|350000|Goi cuoc toc do nhanh cho da thiet bi|Dang hoat dong
+MG06|Goi Gamer 200Mbps|200|450000|Goi cuoc chuyen biet cho game thu|Dang hoat dong
+MG07|Goi Fiber Pro 300Mbps|300|650000|Goi cap quang toc do cao cho van phong|Dang hoat dong
+MG08|Goi Business 500Mbps|500|1200000|Goi doanh nghiep vua va nho bang thong lon|Dang hoat dong
+MG09|Goi Enterprise 1Gbps|1000|2500000|Goi doanh nghiep lon toc do gigabit|Dang hoat dong
+MG10|Goi Student 40Mbps|40|130000|Goi cuoc tiet kiem danh cho sinh vien|Ngung
+MG11|Goi Home Old 30Mbps|30|140000|Goi cuoc cu da ngung cung cap|Ngung
+MG12|Goi Promo 60Mbps|60|180000|Goi khuyen mai dac biet mua he cu|Ngung
+MG13|Goi Ultra 250Mbps|250|550000|Goi toc do cao phien ban cu|Ngung
+MG14|Goi Flex 120Mbps|120|300000|Goi linh hoat cho ho gia dinh|Dang hoat dong
+MG15|Goi Mega 400Mbps|400|900000|Goi sieu toc do cho nha thong minh|Dang hoat dong
