@@ -11,74 +11,105 @@
 #include "NhapDuLieu.h"
 #include <algorithm>
 #include <cctype>
-#include <cmath>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 
-// Lớp HopDong kế thừa LopCoSo; maDinhDanh chính là maHopDong
+// maDinhDanh chính là maHopDong. Giữ nguyên thứ tự cột vì UC01 đọc cột 2 (maGoi):
+//   maHD|maKH|maGoi|maTB|ngayKy|ngayHetHan|giaThieuDung|trangThai
+// F_*: đường dẫn CSDL của các module liên quan, dùng để kiểm tra khóa ngoại
 class HopDong : public LopCoSo {
 private:
+    inline static const std::string F_HD = "data/hop_dong.txt", F_KH = "data/khach_hang.txt",
+                                    F_GOI = "data/goi_internet.txt", F_TB = "data/thiet_bi.txt";
     std::string maKhachHang, maGoiCuoc, maThietBi, ngayKy, ngayHetHan;
     std::string trangThai = "Hoat dong"; // Mặc định hợp đồng mới
     double giaThieuDung = 0;
 
-    // Khớp NhapDuLieu::nhapMaDinhDanh
-    static bool hopLeMa(const std::string& s) {
-        if (s.empty() || s.find('|') != std::string::npos) return false;
-        for (unsigned char c : s)
-            if (std::isspace(c) || std::islower(c)) return false;
-        return true;
+    static bool hopLeMa(const std::string& s) { // khớp NhapDuLieu::nhapMaDinhDanh
+        return !s.empty() && std::none_of(s.begin(), s.end(), [](unsigned char c) {
+            return c == '|' || std::isspace(c) || std::islower(c); });
     }
-
-    // Trạng thái chỉ nhận 3 giá trị cố định
-    static bool hopLeTT(const std::string& t) {
-        return t == "Hoat dong" || t == "Het han" || t == "Huy";
+    static bool hopLeTT(const std::string& t) { return t == "Hoat dong" || t == "Het han" || t == "Huy"; }
+    // Số tiền đọc từ file: chỉ chữ số và tối đa một dấu '.' (không dấu, không số mũ như 1e5)
+    static bool hopLeSoTien(const std::string& s) {
+        return s != "." && !s.empty() && std::count(s.begin(), s.end(), '.') <= 1 &&
+               std::all_of(s.begin(), s.end(), [](unsigned char c) { return std::isdigit(c) || c == '.'; });
     }
-
-    // Đổi "DD/MM/YYYY" thành YYYYMMDD để so sánh; dùng NhapDuLieu::ngayHopLe (năm 1900-2100)
-    static int ngayThanhSo(const std::string& s) {
+    static int ngayThanhSo(const std::string& s) { // "DD/MM/YYYY" -> YYYYMMDD để so sánh
         if (s.size() != 10 || s[2] != '/' || s[5] != '/') return -1;
         for (int i = 0; i < 10; ++i)
-            if (i != 2 && i != 5 && !std::isdigit(static_cast<unsigned char>(s[i])))
-                return -1;
+            if (i != 2 && i != 5 && !std::isdigit(static_cast<unsigned char>(s[i]))) return -1;
         int d = std::stoi(s.substr(0, 2)), m = std::stoi(s.substr(3, 2)), y = std::stoi(s.substr(6, 4));
         return NhapDuLieu::ngayHopLe(d, m, y) ? y * 10000 + m * 100 + d : -1;
     }
+    static void yeuCau(bool ok, const std::string& msg) { if (!ok) throw std::invalid_argument(msg); }
 
-    static void yeuCau(bool ok, const std::string& msg) {
-        if (!ok) throw std::invalid_argument(msg);
+    // Cắt khoảng trắng hai đầu + viết hoa (như NhapDuLieu::nhapMaDinhDanh)
+    static std::string chuanHoaMa(std::string s) {
+        std::size_t d = s.find_first_not_of(" \t\r\n"), c = s.find_last_not_of(" \t\r\n");
+        s = d == std::string::npos ? "" : s.substr(d, c - d + 1);
+        for (char& ch : s) ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+        return s;
     }
-
-    // Dùng chung cho thêm mới và cập nhật (cập nhật không đổi mã hợp đồng)
-    void nhapNoiDung(bool nhapMa) {
-        if (nhapMa) maDinhDanh = NhapDuLieu::nhapMaDinhDanh("Nhap ma hop dong (maHD): ");
-        maKhachHang = NhapDuLieu::nhapMaDinhDanh("Nhap ma khach hang: ");
-        maGoiCuoc = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi cuoc: ");
-        maThietBi = NhapDuLieu::nhapMaDinhDanh("Nhap ma thiet bi: ");
-        ngayKy = NhapDuLieu::nhapNgayThang("Nhap ngay ky hop dong (DD/MM/YYYY): ");
-
-        // Ràng buộc nghiệp vụ: ngày hết hạn không được trước ngày ký
+    // Duyệt file CSDL (bỏ dòng trống và '#'); chỉ đọc, KHÔNG tạo file. Trả về true nếu có dòng mà
+    // khóa chính (cột 0) trùng ma (đã chuẩn hóa); ma rỗng nghĩa là chỉ hỏi "file có dữ liệu không".
+    static bool coBanGhi(const std::string& path, const std::string& ma = "") {
+        std::ifstream file(path);
+        for (std::string dong; std::getline(file, dong);) {
+            if (chuanHoaMa(dong).empty() || dong[0] == '#') continue;
+            if (ma.empty() || chuanHoaMa(dong.substr(0, dong.find('|'))) == ma) return true;
+        }
+        return false;
+    }
+    // Khóa ngoại: nhập lại đến khi mã tồn tại trong file của module tương ứng
+    static std::string nhapMaThamChieu(const std::string& loiNhac, const std::string& path, const std::string& ten) {
         while (true) {
-            ngayHetHan = NhapDuLieu::nhapNgayThang("Nhap ngay het han hop dong (DD/MM/YYYY): ");
-            if (ngayThanhSo(ngayHetHan) >= ngayThanhSo(ngayKy)) break;
+            std::string ma = NhapDuLieu::nhapMaDinhDanh(loiNhac);
+            if (coBanGhi(path, ma)) return ma;
+            std::cout << " -> Loi: Ma " << ten << " [" << ma << "] khong ton tai trong " << path << "!\n";
+        }
+    }
+    // Dùng chung cho thêm mới và cập nhật (không đổi mã). Nhập vào biến tạm, xong mới gán một lần
+    // để không để lại đối tượng "nửa cũ nửa mới". Trả về false nếu thiếu dữ liệu nền.
+    bool nhapNoiDung(bool nhapMa) {
+        for (const std::string* f : {&F_KH, &F_GOI, &F_TB}) // thiếu dữ liệu nền thì không thể nhập mã khóa ngoại
+            if (!coBanGhi(*f)) {
+                std::cout << " -> Loi: Chua co du lieu trong " << *f << ". Hay them truoc khi lap hop dong!\n";
+                return false;
+            }
+        std::string ma = maDinhDanh, het, tt;
+        while (nhapMa) { // khóa chính không được trùng
+            ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma hop dong (maHD): ");
+            if (!coBanGhi(F_HD, ma)) break;
+            std::cout << " -> Loi: Ma hop dong [" << ma << "] DA TON TAI trong he thong!\n";
+        }
+        std::string kh = nhapMaThamChieu("Nhap ma khach hang: ", F_KH, "khach hang");
+        std::string goi = nhapMaThamChieu("Nhap ma goi cuoc: ", F_GOI, "goi cuoc");
+        std::string tb = nhapMaThamChieu("Nhap ma thiet bi: ", F_TB, "thiet bi");
+        std::string ky = NhapDuLieu::nhapNgayThang("Nhap ngay ky hop dong (DD/MM/YYYY): ");
+        while (true) { // ngày hết hạn không được trước ngày ký
+            het = NhapDuLieu::nhapNgayThang("Nhap ngay het han hop dong (DD/MM/YYYY): ");
+            if (ngayThanhSo(het) >= ngayThanhSo(ky)) break;
             std::cout << " -> Loi: Ngay het han phai sau hoac bang ngay ky!\n";
         }
-
-        giaThieuDung = NhapDuLieu::nhapSoThucDuong("Nhap gia thieu dung hang thang (>= 0): ");
-
+        double gia = NhapDuLieu::nhapSoThucDuong("Nhap gia thieu dung hang thang (>= 0): ");
         while (true) {
-            trangThai = NhapDuLieu::nhapChuoi("Nhap trang thai (Hoat dong/Het han/Huy): ");
-            if (hopLeTT(trangThai)) break;
+            tt = NhapDuLieu::nhapChuoi("Nhap trang thai (Hoat dong/Het han/Huy): ");
+            if (hopLeTT(tt)) break;
             std::cout << " -> Loi: Trang thai khong hop le!\n";
         }
+        maDinhDanh = ma; maKhachHang = kh; maGoiCuoc = goi; maThietBi = tb;
+        ngayKy = ky; ngayHetHan = het; giaThieuDung = gia; trangThai = tt;
+        return true;
     }
 
 public:
     HopDong() = default;
-
+    std::string getMaHopDong() const { return maDinhDanh; }
     const std::string& getMaKhachHang() const { return maKhachHang; }
     const std::string& getMaGoiCuoc() const { return maGoiCuoc; }
     const std::string& getMaThietBi() const { return maThietBi; }
@@ -86,69 +117,50 @@ public:
     const std::string& getNgayHetHan() const { return ngayHetHan; }
     const std::string& getTrangThai() const { return trangThai; }
     double getGiaThieuDung() const { return giaThieuDung; }
+    bool hopLe() const { return !maDinhDanh.empty(); } // false nếu nhapThongTin() bị bỏ (thiếu dữ liệu nền)
 
     void setTrangThai(const std::string& tt) {
         yeuCau(hopLeTT(tt), "Trang thai hop dong khong hop le: " + tt);
         trangThai = tt;
     }
-
-    // Ghi đè: thêm hợp đồng mới (có nhập mã)
     void nhapThongTin() override { nhapNoiDung(true); }
-
-    // Ghi đè: cập nhật thông tin phụ, không sửa maDinhDanh
     void capNhatThongTin() override { nhapNoiDung(false); }
-
     void hienThiThongTin() const override {
+        std::ostringstream gia; // định dạng trên chuỗi tạm, không đổi cờ của std::cout
+        gia << std::fixed << std::setprecision(0) << giaThieuDung;
         std::cout << "Ma HD: " << maDinhDanh << " | Ma KH: " << maKhachHang
                   << " | Ma Goi: " << maGoiCuoc << " | Ma TB: " << maThietBi
                   << " | Ngay ky: " << ngayKy << " | Ngay het han: " << ngayHetHan
-                  << " | Gia thieu dung: " << std::fixed << std::setprecision(0) << giaThieuDung << " VND"
-                  << " | Trang thai: " << trangThai << "\n";
+                  << " | Gia thieu dung: " << gia.str() << " VND | Trang thai: " << trangThai << "\n";
     }
 
-    // Ghép chuỗi lưu file; setprecision(0) và fixed để lưu số tiền dưới dạng số nguyên
+    // Tiền lưu cố định 2 chữ số thập phân (như HoaDonCuoc) để không mất dữ liệu
     std::string chuyenThanhChuoi() const override {
         std::ostringstream os;
-        os << maDinhDanh << '|' << maKhachHang << '|' << maGoiCuoc << '|'
-           << maThietBi << '|' << ngayKy << '|' << ngayHetHan << '|'
-           << std::fixed << std::setprecision(0) << giaThieuDung << '|' << trangThai;
+        os << maDinhDanh << '|' << maKhachHang << '|' << maGoiCuoc << '|' << maThietBi << '|'
+           << ngayKy << '|' << ngayHetHan << '|' << std::fixed << std::setprecision(2) << giaThieuDung
+           << '|' << trangThai;
         return os.str();
     }
 
-    // Tách 8 trường (7 dấu '|'); kiểm tra hết rồi mới gán
+    // Kiểm tra toàn vẹn rồi mới gán; ném invalid_argument với thông báo cụ thể
     void docTuChuoi(const std::string& dong) override {
-        yeuCau(std::count(dong.begin(), dong.end(), '|') == 7,
-               "Dong du lieu HopDong co so cot khong dung.");
-
+        yeuCau(std::count(dong.begin(), dong.end(), '|') == 7, "Dong du lieu HopDong co so cot khong dung.");
         std::string f[8];
         std::stringstream ss(dong);
-        for (int i = 0; i < 8; ++i) std::getline(ss, f[i], '|');
+        for (auto& x : f) std::getline(ss, x, '|');
+        if (!f[7].empty() && f[7].back() == '\r') f[7].pop_back(); // file tạo từ Windows
 
-        yeuCau(hopLeMa(f[0]), "Ma hop dong khong hop le: " + f[0]);
-        yeuCau(hopLeMa(f[1]), "Ma khach hang khong hop le: " + f[1]);
-        yeuCau(hopLeMa(f[2]), "Ma goi cuoc khong hop le: " + f[2]);
-        yeuCau(hopLeMa(f[3]), "Ma thiet bi khong hop le: " + f[3]);
-
+        const char* ten[] = {"hop dong", "khach hang", "goi cuoc", "thiet bi"};
+        for (int i = 0; i < 4; ++i)
+            yeuCau(hopLeMa(f[i]), std::string("Ma ") + ten[i] + " khong hop le: " + f[i]);
         int soKy = ngayThanhSo(f[4]), soHet = ngayThanhSo(f[5]);
-        yeuCau(soKy >= 0, "Ngay ky khong hop le: " + f[4]);
-        yeuCau(soHet >= 0, "Ngay het han khong hop le: " + f[5]);
-        yeuCau(soHet >= soKy, "Ngay het han phai sau hoac bang ngay ky.");
-
-        // Xóa ký tự \r ở cuối trạng thái (nếu có do đọc file trên Windows)
-        if (!f[7].empty() && f[7].back() == '\r') {
-            f[7].pop_back();
-        }
+        yeuCau(soKy >= 0 && soHet >= soKy, "Ngay ky/het han khong hop le (het han phai >= ky): " + f[4] + " -> " + f[5]);
+        yeuCau(hopLeSoTien(f[6]), "Gia thieu dung khong hop le: " + f[6]);
         yeuCau(hopLeTT(f[7]), "Trang thai hop dong khong hop le: " + f[7]);
-
-        double gia = -1;
-        try {
-            std::size_t pos = 0;
-            gia = std::stod(f[6], &pos);
-            yeuCau(pos == f[6].size() && std::isfinite(gia) && gia >= 0,
-                   "Gia thieu dung khong hop le: " + f[6]);
-        } catch (...) {
-            yeuCau(false, "Gia thieu dung bi loi dinh dang: " + f[6]);
-        }
+        double gia = 0;
+        try { gia = std::stod(f[6]); }
+        catch (const std::exception&) { yeuCau(false, "Gia thieu dung vuot gioi han: " + f[6]); }
 
         maDinhDanh = f[0]; maKhachHang = f[1]; maGoiCuoc = f[2]; maThietBi = f[3];
         ngayKy = f[4]; ngayHetHan = f[5]; giaThieuDung = gia; trangThai = f[7];
@@ -156,3 +168,4 @@ public:
 };
 
 #endif
+
