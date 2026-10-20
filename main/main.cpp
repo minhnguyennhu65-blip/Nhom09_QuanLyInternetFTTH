@@ -25,7 +25,7 @@
 #include "PhieuSuaChua.h"
 #include "HoaDonCuoc.h"
 
-// Hàm nhập số nguyên chuẩn xác, chặn tuyệt đối trường hợp gõ số kèm chữ hoặc ký tự phía sau (vd: 8vshjkdj)
+// Hàm nhập số nguyên chuẩn xác, chặn tuyệt đối trường hợp gõ ký tự lạ kèm số (vd: 8vshjkdj)
 int nhapSoTrongKhoang(int minVal, int maxVal, const std::string& thongBao) {
     std::string line;
     while (true) {
@@ -40,7 +40,6 @@ int nhapSoTrongKhoang(int minVal, int maxVal, const std::string& thongBao) {
             int giaTri;
             char extra;
 
-            // Đọc số nguyên, sau đó kiểm tra xem sau số đó còn bất kỳ ký tự nào khác không
             if (ss >> giaTri && !(ss >> extra)) {
                 if (giaTri >= minVal && giaTri <= maxVal) {
                     return giaTri;
@@ -58,13 +57,13 @@ void hienThiMenuTong() {
     std::cout << " 1. Quan ly Goi cuoc Internet (UC01 - Tran Ngoc Huy)\n";
     std::cout << " 2. Quan ly Tuyen cap / Khu vuc (UC02 - Tran Ngoc Huy)\n";
     std::cout << " 3. Quan ly Khach hang (UC03 - Hoang Trong Khoa)\n";
-    std::cout << " 4. Quan ly Nhan vien ky thuat (UC04 - Hoang Trong Khoa)\n";
-    std::cout << " 5. Quan ly Hop dong thue bao (UC05 - Hoang Trong Khoa)\n";
-    std::cout << " 6. Quan ly Thiet bi Modem/ONT (UC05 - Nguyen Nhu Minh)\n";
-    std::cout << " 7. Quan ly Cong OLT (UC06 - Nguyen Nhu Minh)\n";
-    std::cout << " 8. Quan ly Phieu lap dat (UC07 - Dinh Van Truong)\n";
-    std::cout << " 9. Quan ly Phieu sua chua (UC08 - Dinh Van Truong)\n";
-    std::cout << " 10. Quan ly Hoa don cuoc (UC09 - Nguyen Duc Huy)\n";
+    std::cout << " 4. Quan ly Hop dong thue bao (UC04 - Hoang Trong Khoa)\n";
+    std::cout << " 5. Quan ly Thiet bi ONT/Modem (UC05 - Nguyen Nhu Minh)\n";
+    std::cout << " 6. Quan ly Cong OLT (UC06 - Nguyen Nhu Minh)\n";
+    std::cout << " 7. Quan ly Phieu lap dat (UC07 - Dinh Van Truong)\n";
+    std::cout << " 8. Quan ly Phieu sua chua (UC08 - Dinh Van Truong)\n";
+    std::cout << " 9. Quan ly Hoa don cuoc (UC09 - Nguyen Duc Huy)\n";
+    std::cout << " 10. Quan ly Nhan vien ky thuat (UC10 - Nguyen Duc Huy)\n";
     std::cout << " 11. Thong ke va Xem tong hop du lieu he thong\n";
     std::cout << " 0. Thoat chuong trinh\n";
     std::cout << "=========================================================\n";
@@ -164,9 +163,6 @@ int main() {
     QuanLyLuuTru<KhachHang>       qlKhachHang("data/khach_hang.txt");
     qlKhachHang.docTuFile();
 
-    QuanLyLuuTru<NhanVienKyThuat> qlNhanVien("data/nhan_vien.txt");
-    qlNhanVien.docTuFile();
-
     QuanLyLuuTru<HopDong>         qlHopDong("data/hop_dong.txt");
     qlHopDong.docTuFile();
 
@@ -185,6 +181,9 @@ int main() {
     QuanLyLuuTru<HoaDonCuoc>      qlHoaDon("data/hoa_don_cuoc.txt");
     qlHoaDon.docTuFile();
 
+    QuanLyLuuTru<NhanVienKyThuat> qlNhanVien("data/nhan_vien.txt");
+    qlNhanVien.docTuFile();
+
     CongOLT::setDBKhachHang(&qlKhachHang);
 
     int luaChon;
@@ -197,25 +196,25 @@ int main() {
         case 1: menuCRUD(qlGoiInternet, "GOI INTERNET (UC01 - Tran Ngoc Huy)"); break;
         case 2: menuCRUD(qlTuyenCap, "TUYEN CAP (UC02 - Tran Ngoc Huy)"); break;
         case 3: menuCRUD(qlKhachHang, "KHACH HANG (UC03 - Hoang Trong Khoa)"); break;
-        case 4: menuCRUD(qlNhanVien, "NHAN VIEN KY THUAT (UC04 - Hoang Trong Khoa)"); break;
-        case 5: menuCRUD(qlHopDong, "HOP DONG THUE BAO (UC05 - Hoang Trong Khoa)"); break;
-        case 6: menuCRUD(qlThietBi, "THIET BI MODEM/ONT (UC05 - Nguyen Nhu Minh)"); break;
-        case 7: menuCRUD(qlOLT, "CONG OLT (UC06 - Nguyen Nhu Minh)"); break;
-        case 8: menuCRUD(qlLapDat, "PHIEU LAP DAT (UC07 - Dinh Van Truong)"); break;
-        case 9: menuCRUD(qlSuaChua, "PHIEU SUA CHUA (UC08 - Dinh Van Truong)"); break;
-        case 10: menuCRUD(qlHoaDon, "HOA DON CUOC (UC09 - Nguyen Duc Huy)"); break;
+        case 4: menuCRUD(qlHopDong, "HOP DONG THUE BAO (UC04 - Hoang Trong Khoa)"); break;
+        case 5: menuCRUD(qlThietBi, "THIET BI ONT/MODEM (UC05 - Nguyen Nhu Minh)"); break;
+        case 6: menuCRUD(qlOLT, "CONG OLT (UC06 - Nguyen Nhu Minh)"); break;
+        case 7: menuCRUD(qlLapDat, "PHIEU LAP DAT (UC07 - Dinh Van Truong)"); break;
+        case 8: menuCRUD(qlSuaChua, "PHIEU SUA CHUA (UC08 - Dinh Van Truong)"); break;
+        case 9: menuCRUD(qlHoaDon, "HOA DON CUOC (UC09 - Nguyen Duc Huy)"); break;
+        case 10: menuCRUD(qlNhanVien, "NHAN VIEN KY THUAT (UC10 - Nguyen Đức Huy)"); break;
         case 11: {
             std::cout << "--- THONG KE TONG HOP DU LIEU ---\n";
             std::cout << " - Tong so Goi cuoc: " << qlGoiInternet.getDanhSach().size() << "\n";
             std::cout << " - Tong so Tuyen cap: " << qlTuyenCap.getDanhSach().size() << "\n";
             std::cout << " - Tong so Khach hang: " << qlKhachHang.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Nhan vien: " << qlNhanVien.getDanhSach().size() << "\n";
             std::cout << " - Tong so Hop dong: " << qlHopDong.getDanhSach().size() << "\n";
             std::cout << " - Tong so Thiet bi: " << qlThietBi.getDanhSach().size() << "\n";
             std::cout << " - Tong so Cong OLT: " << qlOLT.getDanhSach().size() << "\n";
             std::cout << " - Tong so Phieu lap dat: " << qlLapDat.getDanhSach().size() << "\n";
             std::cout << " - Tong so Phieu sua chua: " << qlSuaChua.getDanhSach().size() << "\n";
             std::cout << " - Tong so Hoa don: " << qlHoaDon.getDanhSach().size() << "\n";
+            std::cout << " - Tong so Nhan vien: " << qlNhanVien.getDanhSach().size() << "\n";
             break;
         }
         case 0: {
