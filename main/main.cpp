@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <sstream>
 
 #include "LopCoSo.h"
 #include "NhapDuLieu.h"
@@ -24,17 +25,29 @@
 #include "PhieuSuaChua.h"
 #include "HoaDonCuoc.h"
 
+// Hàm nhập số nguyên chuẩn xác, chặn tuyệt đối trường hợp gõ số kèm chữ hoặc ký tự phía sau (vd: 8vshjkdj)
 int nhapSoTrongKhoang(int minVal, int maxVal, const std::string& thongBao) {
-    int giaTri;
+    std::string line;
     while (true) {
         std::cout << thongBao;
-        if (std::cin >> giaTri && giaTri >= minVal && giaTri <= maxVal) {
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            return giaTri;
+        if (std::getline(std::cin, line)) {
+            if (line.empty()) {
+                std::cout << " -> Loi: Khong duoc de trong! Vui long nhap lai.\n";
+                continue;
+            }
+
+            std::stringstream ss(line);
+            int giaTri;
+            char extra;
+
+            // Đọc số nguyên, sau đó kiểm tra xem sau số đó còn bất kỳ ký tự nào khác không
+            if (ss >> giaTri && !(ss >> extra)) {
+                if (giaTri >= minVal && giaTri <= maxVal) {
+                    return giaTri;
+                }
+            }
         }
         std::cout << " -> Loi: Vui long chi nhap so nguyen tu " << minVal << " den " << maxVal << "!\n";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 }
 
@@ -44,14 +57,14 @@ void hienThiMenuTong() {
     std::cout << "=========================================================\n";
     std::cout << " 1. Quan ly Goi cuoc Internet (UC01 - Tran Ngoc Huy)\n";
     std::cout << " 2. Quan ly Tuyen cap / Khu vuc (UC02 - Tran Ngoc Huy)\n";
-    std::cout << " 3. Quan ly Khach hang (Hoang Trong Khoa)\n";
-    std::cout << " 4. Quan ly Nhan vien ky thuat (Nguyen Duc Huy)\n";
-    std::cout << " 5. Quan ly Hop dong thue bao (Hoang Trong Khoa)\n";
-    std::cout << " 6. Quan ly Thiet bi Modem/ONT (Nguyen Nhu Minh)\n";
+    std::cout << " 3. Quan ly Khach hang (UC03 - Hoang Trong Khoa)\n";
+    std::cout << " 4. Quan ly Nhan vien ky thuat (UC04 - Hoang Trong Khoa)\n";
+    std::cout << " 5. Quan ly Hop dong thue bao (UC05 - Hoang Trong Khoa)\n";
+    std::cout << " 6. Quan ly Thiet bi Modem/ONT (UC05 - Nguyen Nhu Minh)\n";
     std::cout << " 7. Quan ly Cong OLT (UC06 - Nguyen Nhu Minh)\n";
     std::cout << " 8. Quan ly Phieu lap dat (UC07 - Dinh Van Truong)\n";
     std::cout << " 9. Quan ly Phieu sua chua (UC08 - Dinh Van Truong)\n";
-    std::cout << " 10. Quan ly Hoa don cuoc (Nguyen Duc Huy)\n";
+    std::cout << " 10. Quan ly Hoa don cuoc (UC09 - Nguyen Duc Huy)\n";
     std::cout << " 11. Thong ke va Xem tong hop du lieu he thong\n";
     std::cout << " 0. Thoat chuong trinh\n";
     std::cout << "=========================================================\n";
@@ -82,7 +95,6 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
             T obj;
             obj.nhapThongTin();
 
-            // CHẶN NGAY: Nếu mã định danh trống (do bấm 0 hủy), KHÔNG thêm vào danh sách
             if (obj.getMaDinhDanh().empty()) {
                 std::cout << " -> Thao tac da duoc huy, khong them vao danh sach.\n";
             }
@@ -133,7 +145,8 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
 
         if (chon != 0) {
             std::cout << "\nNhan Enter de tiep tuc...";
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::string dummy;
+            std::getline(std::cin, dummy);
         }
     } while (chon != 0);
 }
@@ -142,34 +155,34 @@ int main() {
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(NULL);
 
-    QuanLyLuuTru<GoiInternet>    qlGoiInternet("data/goi_internet.txt");
+    QuanLyLuuTru<GoiInternet>     qlGoiInternet("data/goi_internet.txt");
     qlGoiInternet.docTuFile();
 
-    QuanLyLuuTru<TuyenCap>       qlTuyenCap("data/tuyen_cap.txt");
+    QuanLyLuuTru<TuyenCap>        qlTuyenCap("data/tuyen_cap.txt");
     qlTuyenCap.docTuFile();
 
-    QuanLyLuuTru<KhachHang>      qlKhachHang("data/khach_hang.txt");
+    QuanLyLuuTru<KhachHang>       qlKhachHang("data/khach_hang.txt");
     qlKhachHang.docTuFile();
 
     QuanLyLuuTru<NhanVienKyThuat> qlNhanVien("data/nhan_vien.txt");
     qlNhanVien.docTuFile();
 
-    QuanLyLuuTru<HopDong>        qlHopDong("data/hop_dong.txt");
+    QuanLyLuuTru<HopDong>         qlHopDong("data/hop_dong.txt");
     qlHopDong.docTuFile();
 
-    QuanLyLuuTru<ThietBi>        qlThietBi("data/thiet_bi.txt");
+    QuanLyLuuTru<ThietBi>         qlThietBi("data/thiet_bi.txt");
     qlThietBi.docTuFile();
 
-    QuanLyLuuTru<CongOLT>        qlOLT("data/cong_olt.txt");
+    QuanLyLuuTru<CongOLT>         qlOLT("data/cong_olt.txt");
     qlOLT.docTuFile();
 
-    QuanLyLuuTru<PhieuLapDat>    qlLapDat("data/phieu_lap_dat.txt");
+    QuanLyLuuTru<PhieuLapDat>     qlLapDat("data/phieu_lap_dat.txt");
     qlLapDat.docTuFile();
 
-    QuanLyLuuTru<PhieuSuaChua>   qlSuaChua("data/phieu_sua_chua.txt");
+    QuanLyLuuTru<PhieuSuaChua>    qlSuaChua("data/phieu_sua_chua.txt");
     qlSuaChua.docTuFile();
 
-    QuanLyLuuTru<HoaDonCuoc>     qlHoaDon("data/hoa_don_cuoc.txt");
+    QuanLyLuuTru<HoaDonCuoc>      qlHoaDon("data/hoa_don_cuoc.txt");
     qlHoaDon.docTuFile();
 
     CongOLT::setDBKhachHang(&qlKhachHang);
@@ -181,16 +194,16 @@ int main() {
         std::cout << "\n";
 
         switch (luaChon) {
-        case 1: menuCRUD(qlGoiInternet, "GOI INTERNET (UC01)"); break;
-        case 2: menuCRUD(qlTuyenCap, "TUYEN CAP (UC02)"); break;
-        case 3: menuCRUD(qlKhachHang, "KHACH HANG"); break;
-        case 4: menuCRUD(qlNhanVien, "NHAN VIEN KY THUAT"); break;
-        case 5: menuCRUD(qlHopDong, "HOP DONG THUE BAO"); break;
-        case 6: menuCRUD(qlThietBi, "THIET BI MODEM/ONT"); break;
-        case 7: menuCRUD(qlOLT, "CONG OLT (UC06)"); break;
-        case 8: menuCRUD(qlLapDat, "PHIEU LAP DAT (UC07)"); break;
-        case 9: menuCRUD(qlSuaChua, "PHIEU SUA CHUA (UC08)"); break;
-        case 10: menuCRUD(qlHoaDon, "HOA DON CUOC"); break;
+        case 1: menuCRUD(qlGoiInternet, "GOI INTERNET (UC01 - Tran Ngoc Huy)"); break;
+        case 2: menuCRUD(qlTuyenCap, "TUYEN CAP (UC02 - Tran Ngoc Huy)"); break;
+        case 3: menuCRUD(qlKhachHang, "KHACH HANG (UC03 - Hoang Trong Khoa)"); break;
+        case 4: menuCRUD(qlNhanVien, "NHAN VIEN KY THUAT (UC04 - Hoang Trong Khoa)"); break;
+        case 5: menuCRUD(qlHopDong, "HOP DONG THUE BAO (UC05 - Hoang Trong Khoa)"); break;
+        case 6: menuCRUD(qlThietBi, "THIET BI MODEM/ONT (UC05 - Nguyen Nhu Minh)"); break;
+        case 7: menuCRUD(qlOLT, "CONG OLT (UC06 - Nguyen Nhu Minh)"); break;
+        case 8: menuCRUD(qlLapDat, "PHIEU LAP DAT (UC07 - Dinh Van Truong)"); break;
+        case 9: menuCRUD(qlSuaChua, "PHIEU SUA CHUA (UC08 - Dinh Van Truong)"); break;
+        case 10: menuCRUD(qlHoaDon, "HOA DON CUOC (UC09 - Nguyen Duc Huy)"); break;
         case 11: {
             std::cout << "--- THONG KE TONG HOP DU LIEU ---\n";
             std::cout << " - Tong so Goi cuoc: " << qlGoiInternet.getDanhSach().size() << "\n";
@@ -213,7 +226,8 @@ int main() {
 
         if (luaChon != 0) {
             std::cout << "\nNhan Enter de tiep tuc...";
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::string dummy;
+            std::getline(std::cin, dummy);
         }
 
     } while (luaChon != 0);
