@@ -55,13 +55,16 @@ private:
 
     // Kiem tra ngay DD/MM/YYYY co ton tai tren lich
     bool ngayHopLe(const std::string& ngay) const {
-        if (ngay.length() != 10 || ngay[2] != '/' || ngay[5] != '/') {
+        if (ngay.length() != 10 ||
+            ngay[2] != '/' || ngay[5] != '/') {
             return false;
         }
 
         for (int i = 0; i < 10; ++i) {
             if (i == 2 || i == 5) continue;
-            if (!std::isdigit(static_cast<unsigned char>(ngay[i]))) {
+
+            if (!std::isdigit(
+                static_cast<unsigned char>(ngay[i]))) {
                 return false;
             }
         }
@@ -69,14 +72,21 @@ private:
         int d = (ngay[0] - '0') * 10 + (ngay[1] - '0');
         int m = (ngay[3] - '0') * 10 + (ngay[4] - '0');
         int y = 0;
+
         for (int i = 6; i < 10; ++i) {
             y = y * 10 + (ngay[i] - '0');
         }
 
         if (y < 1 || m < 1 || m > 12) return false;
 
-        int soNgay[] = { 31, 28, 31, 30, 31, 31, 30, 31, 30, 31 };
-        bool namNhuan = (y % 400 == 0) || (y % 4 == 0 && y % 100 != 0);
+        int soNgay[] = {
+            31, 28, 31, 30, 31, 30,
+            31, 31, 30, 31, 30, 31
+        };
+
+        bool namNhuan =
+            (y % 400 == 0) || (y % 4 == 0 && y % 100 != 0);
+
         if (namNhuan) soNgay[1] = 29;
 
         return d >= 1 && d <= soNgay[m - 1];
