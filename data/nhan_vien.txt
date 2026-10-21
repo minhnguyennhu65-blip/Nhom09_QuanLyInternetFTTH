@@ -3,3 +3,8 @@ NV002|Nguyen Nhu Minh|CHUA_CAP_NHAT|Sua chua modem|Cam Pha|Dang lam
 NV003|Hoang Trong Khoa|CHUA_CAP_NHAT|Bao tri thiet bi|Uong Bi|Dang lam
 NV004|Tran Ngoc Huy|CHUA_CAP_NHAT|Xu ly su co mang|Ha Long|Dang lam
 NV005|Dinh Van Truong|CHUA_CAP_NHAT|Lap dat cap quang|Mong Cai|Dang lam
+NV006|Pham Quang Anh|CHUA_CAP_NHAT|Kiem tra duong truyen|Ha Phong|Dang lam
+NV007|Vu Thi Lan|CHUA_CAP_NHAT|Ho tro khach hang|Ha Long|Dang lam
+NV008|Bui Minh Tuan|CHUA_CAP_NHAT|Cau hinh router|Cam Pha|Dang lam
+NV009|Do Thanh Nam|CHUA_CAP_NHAT|Bao tri cap quang|Uong Bi|Dang lam
+NV010|Le Hoang Phuc|CHUA_CAP_NHAT|Xu ly su co Internet|Mong Cai|Dang lam
