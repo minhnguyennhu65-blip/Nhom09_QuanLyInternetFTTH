@@ -8,8 +8,3 @@ MG07|Goi Fiber Pro 300Mbps|300|650000|Goi cap quang toc do cao cho van phong|Dan
 MG08|Goi Business 500Mbps|500|1200000|Goi doanh nghiep vua va nho bang thong lon|Dang hoat dong
 MG09|Goi Enterprise 1Gbps|1000|2500000|Goi doanh nghiep lon toc do gigabit|Dang hoat dong
 MG10|Goi Student 40Mbps|40|130000|Goi cuoc tiet kiem danh cho sinh vien|Ngung
-MG11|Goi Home Old 30Mbps|30|140000|Goi cuoc cu da ngung cung cap|Ngung
-MG12|Goi Promo 60Mbps|60|180000|Goi khuyen mai dac biet mua he cu|Ngung
-MG13|Goi Ultra 250Mbps|250|550000|Goi toc do cao phien ban cu|Ngung
-MG14|Goi Flex 120Mbps|120|300000|Goi linh hoat cho ho gia dinh|Dang hoat dong
-MG15|Goi Mega 400Mbps|400|900000|Goi sieu toc do cho nha thong minh|Dang hoat dong
