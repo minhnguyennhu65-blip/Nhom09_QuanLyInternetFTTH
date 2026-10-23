@@ -21,6 +21,8 @@ class KhachHang : public LopCoSo {
 private:
     std::string tenKhachHang, soDienThoai, diaChiLapDat, email;
     std::string trangThai = "Dang su dung"; // Mặc định khi tạo mới
+    std::string loaiKhachHang = "Ca nhan"; // Mặc định: Ca nhan / Doanh nghiep
+    std::string ngayDangKy; // Ngày tháng năm tạo hồ sơ (DD/MM/YYYY)
 
     // Khớp NhapDuLieu::nhapMaDinhDanh: không rỗng, không '|', không khoảng trắng, không chữ thường
     static bool hopLeMa(const std::string& s) {
@@ -58,6 +60,29 @@ private:
         return t == "Dang su dung" || t == "Khoa" || t == "Huy";
     }
 
+    // Loại khách hàng chỉ nhận 2 giá trị
+    static bool hopLeLoaiKH(const std::string& l) {
+        return l == "Ca nhan" || l == "Doanh nghiep";
+    }
+
+    // Kiểm tra ngày DD/MM/YYYY
+    static bool hopLeNgay(const std::string& ngay) {
+        if (ngay.size() != 10) return false;
+        if (ngay[2] != '/' || ngay[5] != '/') return false;
+        for (int i = 0; i < 10; i++) {
+            if (i == 2 || i == 5) continue;
+            if (!std::isdigit(ngay[i])) return false;
+        }
+        int d = std::stoi(ngay.substr(0, 2));
+        int m = std::stoi(ngay.substr(3, 2));
+        int y = std::stoi(ngay.substr(6, 4));
+        if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1) return false;
+        int soNgayTrongThang[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+        bool namNhuan = (y % 400 == 0) || (y % 4 == 0 && y % 100 != 0);
+        if (namNhuan) soNgayTrongThang[1] = 29;
+        return d <= soNgayTrongThang[m - 1];
+    }
+
     // Ném ngoại lệ nếu điều kiện không thỏa (dùng khi đọc file)
     static void yeuCau(bool ok, const std::string& msg) {
         if (!ok) throw std::invalid_argument(msg);
@@ -77,6 +102,20 @@ private:
             std::cout << " -> Loi: Email khong hop le (VD: ten@congty.vn)!\n";
         }
 
+        // Nhập loại khách hàng (Ca nhan / Doanh nghiep)
+        while (true) {
+            loaiKhachHang = NhapDuLieu::nhapChuoi("Nhap loai khach hang (Ca nhan/Doanh nghiep): ");
+            if (hopLeLoaiKH(loaiKhachHang)) break;
+            std::cout << " -> Loi: Loai khach hang khong hop le!\n";
+        }
+
+        // Nhập ngày đăng ký (DD/MM/YYYY)
+        while (true) {
+            ngayDangKy = NhapDuLieu::nhapChuoi("Nhap ngay dang ky (DD/MM/YYYY): ");
+            if (hopLeNgay(ngayDangKy)) break;
+            std::cout << " -> Loi: Ngay khong hop le (VD: 23/10/2026)!\n";
+        }
+
         while (true) {
             trangThai = NhapDuLieu::nhapChuoi("Nhap trang thai (Dang su dung/Khoa/Huy): ");
             if (hopLeTT(trangThai)) break;
@@ -92,6 +131,8 @@ public:
     const std::string& getDiaChiLapDat() const { return diaChiLapDat; }
     const std::string& getEmail() const { return email; }
     const std::string& getTrangThai() const { return trangThai; }
+    const std::string& getLoaiKhachHang() const { return loaiKhachHang; }
+    const std::string& getNgayDangKy() const { return ngayDangKy; }
 
     // Cập nhật trạng thái kèm kiểm tra hợp lệ
     void setTrangThai(const std::string& tt) {
@@ -105,8 +146,7 @@ public:
     // Ghi đè: cập nhật thông tin phụ, không sửa maDinhDanh — bắt buộc vì LopCoSo thuần ảo
     void capNhatThongTin() override { nhapNoiDung(false); }
 
-    // Ghi đè: in thông tin ra màn hình
-   // Ghi đè: in thông tin ra màn hình (Đã căn lề chuẩn theo bảng)
+    // Ghi đè: in thông tin ra màn hình (Đã căn lề chuẩn theo bảng)
     void hienThiThongTin() const override {
         std::cout << std::left
             << std::setw(7) << maDinhDanh << " | "
@@ -114,35 +154,40 @@ public:
             << std::setw(12) << soDienThoai << " | "
             << std::setw(25) << diaChiLapDat << " | "
             << std::setw(22) << email << " | "
+            << std::setw(15) << loaiKhachHang << " | "
+            << std::setw(12) << ngayDangKy << " | "
             << std::setw(15) << trangThai << "\n";
     }
 
     // Ghi đè: ghép thuộc tính bằng '|' để lưu file
     std::string chuyenThanhChuoi() const override {
         return maDinhDanh + "|" + tenKhachHang + "|" + soDienThoai + "|" +
-            diaChiLapDat + "|" + email + "|" + trangThai;
+            diaChiLapDat + "|" + email + "|" + loaiKhachHang + "|" + ngayDangKy + "|" + trangThai;
     }
 
     // Ghi đè: tách dòng file thành thuộc tính; kiểm tra hết rồi mới gán
     void docTuChuoi(const std::string& dong) override {
-        yeuCau(std::count(dong.begin(), dong.end(), '|') == 5,
+        yeuCau(std::count(dong.begin(), dong.end(), '|') == 7,
             "Dong du lieu KhachHang co so cot khong dung.");
 
-        std::string f[6];
+        std::string f[8];
         std::stringstream ss(dong);
-        for (int i = 0; i < 6; ++i) std::getline(ss, f[i], '|');
+        for (int i = 0; i < 8; ++i) std::getline(ss, f[i], '|');
 
-        if (!f[5].empty() && f[5].back() == '\r') f[5].pop_back();
+        if (!f[7].empty() && f[7].back() == '\r') f[7].pop_back();
 
         yeuCau(hopLeMa(f[0]), "Ma khach hang khong hop le: " + f[0]);
         yeuCau(hopLeChuoi(f[1]), "Ten khach hang khong hop le.");
         yeuCau(hopLeSDT(f[2]), "So dien thoai khong hop le: " + f[2]);
         yeuCau(hopLeChuoi(f[3]), "Dia chi khong hop le.");
         yeuCau(hopLeEmail(f[4]), "Email khong hop le: " + f[4]);
-        yeuCau(hopLeTT(f[5]), "Trang thai khach hang khong hop le: " + f[5]);
+        yeuCau(hopLeLoaiKH(f[5]), "Loai khach hang khong hop le: " + f[5]);
+        yeuCau(hopLeNgay(f[6]), "Ngay dang ky khong hop le: " + f[6]);
+        yeuCau(hopLeTT(f[7]), "Trang thai khach hang khong hop le: " + f[7]);
 
         maDinhDanh = f[0]; tenKhachHang = f[1]; soDienThoai = f[2];
-        diaChiLapDat = f[3]; email = f[4]; trangThai = f[5];
+        diaChiLapDat = f[3]; email = f[4]; loaiKhachHang = f[5];
+        ngayDangKy = f[6]; trangThai = f[7];
     }
 };
 
