@@ -15,6 +15,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <iomanip>
 
  // Lớp KhachHang kế thừa LopCoSo, triển khai đủ 5 hàm thuần ảo (kể cả capNhatThongTin)
 class KhachHang : public LopCoSo {
@@ -23,6 +24,8 @@ private:
     std::string trangThai = "Dang su dung"; // Mặc định khi tạo mới
     std::string loaiKhachHang = "Ca nhan"; // Mặc định: Ca nhan / Doanh nghiep
     std::string ngayDangKy; // Ngày tháng năm tạo hồ sơ (DD/MM/YYYY)
+
+    static bool daInHeader; // Flag để chỉ in header 1 lần
 
     // Khớp NhapDuLieu::nhapMaDinhDanh: không rỗng, không '|', không khoảng trắng, không chữ thường
     static bool hopLeMa(const std::string& s) {
@@ -146,8 +149,24 @@ public:
     // Ghi đè: cập nhật thông tin phụ, không sửa maDinhDanh — bắt buộc vì LopCoSo thuần ảo
     void capNhatThongTin() override { nhapNoiDung(false); }
 
-    // Ghi đè: in thông tin ra màn hình (Đã căn lề chuẩn theo bảng)
+    // Ghi đè: in thông tin ra màn hình (Tự động vẽ bảng)
     void hienThiThongTin() const override {
+        // Chỉ in header lần đầu tiên
+        if (!daInHeader) {
+            std::cout << "\n" << std::string(142, '-') << "\n";
+            std::cout << std::left
+                << std::setw(7) << "Ma KH" << " | "
+                << std::setw(20) << "Ho ten" << " | "
+                << std::setw(12) << "SDT" << " | "
+                << std::setw(25) << "Dia chi" << " | "
+                << std::setw(22) << "Email" << " | "
+                << std::setw(15) << "Loai KH" << " | "
+                << std::setw(12) << "Ngay DK" << " | "
+                << std::setw(15) << "Trang thai" << "\n";
+            std::cout << std::string(142, '-') << "\n";
+            daInHeader = true;
+        }
+
         std::cout << std::left
             << std::setw(7) << maDinhDanh << " | "
             << std::setw(20) << tenKhachHang << " | "
@@ -189,6 +208,12 @@ public:
         diaChiLapDat = f[3]; email = f[4]; loaiKhachHang = f[5];
         ngayDangKy = f[6]; trangThai = f[7];
     }
+
+    // Reset flag khi cần hiển thị lại từ đầu
+    static void resetHeader() { daInHeader = false; }
 };
+
+// Khởi tạo biến static
+bool KhachHang::daInHeader = false;
 
 #endif
