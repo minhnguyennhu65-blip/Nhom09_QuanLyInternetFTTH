@@ -34,6 +34,8 @@ private:
     string trangThai;
     string loaiKhachHang; // Liên kết với loại khách hàng (Ca nhan / Doanh nghiep)
 
+    static bool daInHeader; // Flag để chỉ in header 1 lần
+
     // Chuan hoa ma: viet hoa va bo khoang trang
     string chuanHoaMa(string ma) const {
         string ketQua;
@@ -353,8 +355,25 @@ public:
         cout << " -> Cap nhat hop dong thanh cong!\n";
     }
 
-    // HIEN THI THONG TIN (Đã căn lề dạng bảng)
+    // HIEN THI THONG TIN (Tự động vẽ bảng)
     void hienThiThongTin() const override {
+        // Chỉ in header lần đầu tiên
+        if (!daInHeader) {
+            std::cout << "\n" << std::string(127, '-') << "\n";
+            std::cout << std::left
+                << std::setw(7) << "Ma HD" << " | "
+                << std::setw(7) << "Ma KH" << " | "
+                << std::setw(8) << "Ma Goi" << " | "
+                << std::setw(7) << "Ma TB" << " | "
+                << std::setw(12) << "Ngay ky" << " | "
+                << std::setw(12) << "Ngay het" << " | "
+                << std::setw(15) << "Gia (VND)" << " | "
+                << std::setw(15) << "Loai KH" << " | "
+                << std::setw(12) << "Trang thai" << "\n";
+            std::cout << std::string(127, '-') << "\n";
+            daInHeader = true;
+        }
+
         std::cout << std::left
             << std::setw(7) << maDinhDanh << " | "
             << std::setw(7) << maKhachHang << " | "
@@ -416,6 +435,12 @@ public:
         maDinhDanh = maHD; maKhachHang = maKH; maGoiCuoc = maGoi; maThietBi = maTB;
         ngayKy = ky; ngayHetHan = hetHan; giaThieuDung = giaDoc; loaiKhachHang = loaiKH; trangThai = tt;
     }
+
+    // Reset flag khi cần hiển thị lại từ đầu
+    static void resetHeader() { daInHeader = false; }
 };
+
+// Khởi tạo biến static
+bool HopDong::daInHeader = false;
 
 #endif // HOP_DONG_H
