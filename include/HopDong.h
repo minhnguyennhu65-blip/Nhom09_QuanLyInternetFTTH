@@ -32,6 +32,7 @@ private:
     string ngayHetHan;
     double giaThieuDung;
     string trangThai;
+    string loaiKhachHang; // Liên kết với loại khách hàng (Ca nhan / Doanh nghiep)
 
     // Chuan hoa ma: viet hoa va bo khoang trang
     string chuanHoaMa(string ma) const {
@@ -120,6 +121,38 @@ private:
         return false;
     }
 
+    // Lấy loại khách hàng từ file khach_hang.txt dựa trên mã khách hàng
+    string layLoaiKhachHang(const string& maKH) const {
+        ifstream file("data/khach_hang.txt");
+        if (!file.is_open()) return "";
+
+        const string maCanTim = chuanHoaMa(maKH);
+        string dong;
+
+        while (getline(file, dong)) {
+            if (dong.empty() || dong[0] == '#') continue;
+
+            stringstream ss(dong);
+            string maTrongFile, ten, sdt, diaChi, email, loaiKH, ngayDK, trangThai;
+
+            if (getline(ss, maTrongFile, '|') && chuanHoaMa(maTrongFile) == maCanTim) {
+                getline(ss, ten, '|');
+                getline(ss, sdt, '|');
+                getline(ss, diaChi, '|');
+                getline(ss, email, '|');
+                getline(ss, loaiKH, '|');
+                getline(ss, ngayDK, '|');
+                getline(ss, trangThai, '|');
+
+                file.close();
+                return loaiKH;
+            }
+        }
+
+        file.close();
+        return "";
+    }
+
     // Kiem tra trang thai hop dong
     bool kiemTraTrangThai(const string& tt) const {
         return tt == "Hoat dong" || tt == "Het han" || tt == "Huy";
@@ -164,6 +197,7 @@ public:
     string getNgayHetHan() const { return ngayHetHan; }
     double getGiaThieuDung() const { return giaThieuDung; }
     string getTrangThai() const { return trangThai; }
+    string getLoaiKhachHang() const { return loaiKhachHang; }
 
     // NHAP THONG TIN HOP DONG MOI
     void nhapThongTin() override {
@@ -193,6 +227,15 @@ public:
 
         maKhachHang = nhapMaKhoaNgoai("Nhap ma khach hang (Nhan '0' de huy): ", "data/khach_hang.txt", "khach hang");
         if (maKhachHang.empty()) { maDinhDanh = ""; cout << " -> Da huy thao tac them hop dong.\n"; return; }
+
+        // Tự động lấy loại khách hàng từ file khach_hang.txt
+        loaiKhachHang = layLoaiKhachHang(maKhachHang);
+        if (loaiKhachHang.empty()) {
+            cout << "Loi: Khong the lay loai khach hang tu ma [" << maKhachHang << "]!\n";
+            maDinhDanh = "";
+            return;
+        }
+        cout << " -> Loai khach hang: " << loaiKhachHang << "\n";
 
         maGoiCuoc = nhapMaKhoaNgoai("Nhap ma goi cuoc (Nhan '0' de huy): ", "data/goi_internet.txt", "goi cuoc");
         if (maGoiCuoc.empty()) { maDinhDanh = ""; cout << " -> Da huy thao tac them hop dong.\n"; return; }
@@ -246,7 +289,13 @@ public:
             if (input.empty() || input == "0") break;
             input = chuanHoaMa(input);
             if (!kiemTraKhoaNgoai("data/khach_hang.txt", input)) { cout << "Loi: Ma khach hang khong ton tai!\n"; continue; }
-            maKhachHang = input; break;
+            maKhachHang = input;
+            // Cập nhật lại loại khách hàng khi thay đổi mã khách hàng
+            loaiKhachHang = layLoaiKhachHang(maKhachHang);
+            if (!loaiKhachHang.empty()) {
+                cout << " -> Loai khach hang duoc cap nhat: " << loaiKhachHang << "\n";
+            }
+            break;
         }
 
         while (true) {
@@ -314,6 +363,7 @@ public:
             << std::setw(12) << ngayKy << " | "
             << std::setw(12) << ngayHetHan << " | "
             << std::setw(15) << std::fixed << std::setprecision(0) << giaThieuDung << " | "
+            << std::setw(15) << loaiKhachHang << " | "
             << std::setw(12) << trangThai << '\n';
     }
 
@@ -327,6 +377,7 @@ public:
             << ngayKy << '|'
             << ngayHetHan << '|'
             << setprecision(15) << giaThieuDung << '|'
+            << loaiKhachHang << '|'
             << trangThai;
         return ss.str();
     }
@@ -334,11 +385,11 @@ public:
     // DOC DU LIEU TU CHUOI GHI FILE
     void docTuChuoi(const string& dong) override {
         stringstream ss(dong);
-        string maHD, maKH, maGoi, maTB, ky, hetHan, giaStr, tt, duThua;
+        string maHD, maKH, maGoi, maTB, ky, hetHan, giaStr, loaiKH, tt, duThua;
 
         if (!getline(ss, maHD, '|') || !getline(ss, maKH, '|') || !getline(ss, maGoi, '|') ||
             !getline(ss, maTB, '|') || !getline(ss, ky, '|') || !getline(ss, hetHan, '|') ||
-            !getline(ss, giaStr, '|') || !getline(ss, tt, '|')) {
+            !getline(ss, giaStr, '|') || !getline(ss, loaiKH, '|') || !getline(ss, tt, '|')) {
             return;
         }
 
@@ -363,7 +414,7 @@ public:
         }
 
         maDinhDanh = maHD; maKhachHang = maKH; maGoiCuoc = maGoi; maThietBi = maTB;
-        ngayKy = ky; ngayHetHan = hetHan; giaThieuDung = giaDoc; trangThai = tt;
+        ngayKy = ky; ngayHetHan = hetHan; giaThieuDung = giaDoc; loaiKhachHang = loaiKH; trangThai = tt;
     }
 };
 
