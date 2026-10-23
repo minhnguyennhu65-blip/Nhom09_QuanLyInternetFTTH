@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <string>
 
-// Lớp KhachHang kế thừa LopCoSo, triển khai đủ 5 hàm thuần ảo (kể cả capNhatThongTin)
+ // Lớp KhachHang kế thừa LopCoSo, triển khai đủ 5 hàm thuần ảo (kể cả capNhatThongTin)
 class KhachHang : public LopCoSo {
 private:
     std::string tenKhachHang, soDienThoai, diaChiLapDat, email;
@@ -106,22 +106,27 @@ public:
     void capNhatThongTin() override { nhapNoiDung(false); }
 
     // Ghi đè: in thông tin ra màn hình
+   // Ghi đè: in thông tin ra màn hình (Đã căn lề chuẩn theo bảng)
     void hienThiThongTin() const override {
-        std::cout << "Ma KH: " << maDinhDanh << " | Ten: " << tenKhachHang
-                  << " | SDT: " << soDienThoai << " | Dia chi: " << diaChiLapDat
-                  << " | Email: " << email << " | Trang thai: " << trangThai << "\n";
+        std::cout << std::left
+            << std::setw(7) << maDinhDanh << " | "
+            << std::setw(20) << tenKhachHang << " | "
+            << std::setw(12) << soDienThoai << " | "
+            << std::setw(25) << diaChiLapDat << " | "
+            << std::setw(22) << email << " | "
+            << std::setw(15) << trangThai << "\n";
     }
 
     // Ghi đè: ghép thuộc tính bằng '|' để lưu file
     std::string chuyenThanhChuoi() const override {
         return maDinhDanh + "|" + tenKhachHang + "|" + soDienThoai + "|" +
-               diaChiLapDat + "|" + email + "|" + trangThai;
+            diaChiLapDat + "|" + email + "|" + trangThai;
     }
 
     // Ghi đè: tách dòng file thành thuộc tính; kiểm tra hết rồi mới gán
     void docTuChuoi(const std::string& dong) override {
         yeuCau(std::count(dong.begin(), dong.end(), '|') == 5,
-               "Dong du lieu KhachHang co so cot khong dung.");
+            "Dong du lieu KhachHang co so cot khong dung.");
 
         std::string f[6];
         std::stringstream ss(dong);
@@ -142,4 +147,3 @@ public:
 };
 
 #endif
-
