@@ -1,14 +1,7 @@
 /* =======================================================
  * Tên tác giả: Trần Ngọc Huy
  * Mã sinh viên: B24DCVT183
- * Mô tả file: Use Case 02 - Quản lý Tuyến Cáp
- * ======================================================= */
-
-
- /* =======================================================
- * Tên tác giả: Trần Ngọc Huy
- * Mã sinh viên: B24DCVT183
- * Mô tả file: Use Case 02 - Quản lý Tuyến Cáp (Bổ sung loaiKhuVuc, chieuDaiTuyenCap, loaiCap)
+ * Mô tả file: Use Case 02 - Quản lý Tuyến Cáp 
  * ======================================================= */
 
 #ifndef TUYEN_CAP_H
@@ -39,19 +32,19 @@ private:
     std::string trangThai;      // "Hoat dong" / "Bao tri"
 
     static const std::vector<std::string>& danhSachTrangThai() {
-        static const std::vector<std::string> ds = {"Hoat dong", "Bao tri"};
+        static const std::vector<std::string> ds = { "Hoat dong", "Bao tri" };
         return ds;
     }
 
     static const std::vector<std::string>& danhSachLoaiKhuVuc() {
-        static const std::vector<std::string> ds = {"thanh thi", "nong thon", "vung nui"};
+        static const std::vector<std::string> ds = { "thanh thi", "nong thon", "vung nui" };
         return ds;
     }
 
     void nhapThuocTinh() {
         tenTuyen = NhapDuLieu::nhapChuoi("Nhap ten tuyen cap: ");
         khuVuc = NhapDuLieu::nhapChuoi("Nhap khu vuc phuc vu: ");
-        loaiKhuVuc = chonTuDanhSalaryHelper("Chon loai khu vuic:", danhSachLoaiKhuVuc());
+        loaiKhuVuc = chonTuDanhSalaryHelper("Chon loai khu vuc:", danhSachLoaiKhuVuc());
         chieuDaiTuyenCap = NhapDuLieu::nhapSoThucDuong("Nhap chieu dai tuyen cap (km): ");
         loaiCap = NhapDuLieu::nhapChuoi("Nhap loai cap su dung: ");
         diaDiemDau = NhapDuLieu::nhapChuoi("Nhap diem dau: ");
@@ -131,38 +124,39 @@ public:
         nhapThuocTinh();
     }
 
-    static void inTieuDeBang() {
+    // Đã đổi tên từ inTieuDeBang thành inTieuDe để tương thích với menuCRUD chung trong main.cpp
+    static void inTieuDe() {
         std::cout << std::left
-                  << std::setw(10) << "Ma tuyen"
-                  << std::setw(18) << "Ten tuyen"
-                  << std::setw(15) << "Khu vuc"
-                  << std::setw(14) << "Loai KV"
-                  << std::setw(14) << "Chieu dai(km)"
-                  << std::setw(16) << "Loai cap"
-                  << std::setw(16) << "Diem dau"
-                  << std::setw(16) << "Diem cuoi"
-                  << std::setw(12) << "Trang thai" << "\n"
-                  << std::string(131, '-') << "\n";
+            << std::setw(10) << "Ma tuyen"
+            << std::setw(18) << "Ten tuyen"
+            << std::setw(15) << "Khu vuc"
+            << std::setw(14) << "Loai KV"
+            << std::setw(14) << "Chieu dai(km)"
+            << std::setw(16) << "Loai cap"
+            << std::setw(16) << "Diem dau"
+            << std::setw(16) << "Diem cuoi"
+            << std::setw(12) << "Trang thai" << "\n"
+            << std::string(131, '-') << "\n";
     }
 
     void hienThiThongTin() const override {
         std::cout << std::left
-                  << std::setw(10) << catChuoi(maDinhDanh, 9)
-                  << std::setw(18) << catChuoi(tenTuyen, 17)
-                  << std::setw(15) << catChuoi(khuVuc, 14)
-                  << std::setw(14) << catChuoi(loaiKhuVuc, 13)
-                  << std::setw(14) << std::fixed << std::setprecision(2) << chieuDaiTuyenCap
-                  << std::setw(16) << catChuoi(loaiCap, 15)
-                  << std::setw(16) << catChuoi(diaDiemDau, 15)
-                  << std::setw(16) << catChuoi(diaDiemCuoi, 15)
-                  << std::setw(12) << trangThai << "\n";
+            << std::setw(10) << catChuoi(maDinhDanh, 9)
+            << std::setw(18) << catChuoi(tenTuyen, 17)
+            << std::setw(15) << catChuoi(khuVuc, 14)
+            << std::setw(14) << catChuoi(loaiKhuVuc, 13)
+            << std::setw(14) << std::fixed << std::setprecision(2) << chieuDaiTuyenCap
+            << std::setw(16) << catChuoi(loaiCap, 15)
+            << std::setw(16) << catChuoi(diaDiemDau, 15)
+            << std::setw(16) << catChuoi(diaDiemCuoi, 15)
+            << std::setw(12) << trangThai << "\n";
     }
 
     std::string chuyenThanhChuoi() const override {
         std::ostringstream oss;
         oss << std::setprecision(2) << std::fixed << chieuDaiTuyenCap;
         return maDinhDanh + "|" + tenTuyen + "|" + khuVuc + "|" + loaiKhuVuc + "|" +
-               oss.str() + "|" + loaiCap + "|" + diaDiemDau + "|" + diaDiemCuoi + "|" + trangThai;
+            oss.str() + "|" + loaiCap + "|" + diaDiemDau + "|" + diaDiemCuoi + "|" + trangThai;
     }
 
     void docTuChuoi(const std::string& dongDuLieu) override {
@@ -223,15 +217,15 @@ namespace UC02 {
             std::cout << " -> Danh sach rong!\n";
             return;
         }
-        TuyenCap::inTieuDeBang();
+        TuyenCap::inTieuDe();
         double tongChieuDai = 0;
         for (const auto& tuyen : ds) {
             tuyen.hienThiThongTin();
             tongChieuDai += tuyen.getChieuDaiTuyenCap();
         }
         std::cout << std::string(131, '-') << "\n";
-        std::cout << " => Tong so tuyen cap: " << ds.size() 
-                  << " | Tong chieu dai: " << std::fixed << std::setprecision(2) << tongChieuDai << " km\n";
+        std::cout << " => Tong so tuyen cap: " << ds.size()
+            << " | Tong chieu dai: " << std::fixed << std::setprecision(2) << tongChieuDai << " km\n";
     }
 
     inline void timKiemTuyen(QuanLyLuuTru<TuyenCap>& ql) {
@@ -242,7 +236,7 @@ namespace UC02 {
             std::cout << " -> Khong tim thay tuyen co ma: " << ma << "\n";
             return;
         }
-        TuyenCap::inTieuDeBang();
+        TuyenCap::inTieuDe();
         tuyen->hienThiThongTin();
         std::cout << std::string(131, '-') << "\n";
     }
@@ -256,7 +250,7 @@ namespace UC02 {
             return;
         }
         std::cout << "Thong tin hien tai:\n";
-        TuyenCap::inTieuDeBang();
+        TuyenCap::inTieuDe();
         tuyen->hienThiThongTin();
         std::cout << "\nNhap thong tin moi:\n";
         ql.capNhat(ma);
@@ -270,52 +264,40 @@ namespace UC02 {
             std::cout << " -> Khong tim thay tuyen co ma: " << ma << "\n";
             return;
         }
-        TuyenCap::inTieuDeBang();
+        TuyenCap::inTieuDe();
         tuyen->hienThiThongTin();
         if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa tuyen nay?")) {
             ql.xoaTheoMa(ma);
-        } else {
+        }
+        else {
             std::cout << " -> Da huy thao tac xoa.\n";
         }
     }
 
     inline void chayMenu() {
-        try { std::filesystem::create_directories("data"); } catch (...) {}
+        try { std::filesystem::create_directories("data"); }
+        catch (...) {}
         QuanLyLuuTru<TuyenCap> ql(FILE_TUYEN_CAP);
         while (true) {
             std::cout << "\n===== UC02 - QUAN LY TUYEN CAP/KHU VUC =====\n"
-                      << "1. Them tuyen cap\n"
-                      << "2. Hien thi danh sach\n"
-                      << "3. Tim kiem theo ma\n"
-                      << "4. Sua thong tin\n"
-                      << "5. Xoa tuyen cap\n"
-                      << "0. Quay lai\n";
+                << "1. Them tuyen cap\n"
+                << "2. Hien thi danh sach\n"
+                << "3. Tim kiem theo ma\n"
+                << "4. Sua thong tin\n"
+                << "5. Xoa tuyen cap\n"
+                << "0. Quay lai\n";
             int chon = NhapDuLieu::nhapSoNguyenDuong("Chon chuc nang: ");
             switch (chon) {
-                case 1: themTuyen(ql); break;
-                case 2: hienThiDanhSach(ql); break;
-                case 3: timKiemTuyen(ql); break;
-                case 4: suaTuyen(ql); break;
-                case 5: xoaTuyen(ql); break;
-                case 0: return;
-                default: std::cout << " -> Loi: Lua chon khong hop le!\n";
+            case 1: themTuyen(ql); break;
+            case 2: hienThiDanhSach(ql); break;
+            case 3: timKiemTuyen(ql); break;
+            case 4: suaTuyen(ql); break;
+            case 5: xoaTuyen(ql); break;
+            case 0: return;
+            default: std::cout << " -> Loi: Lua chon khong hop le!\n";
             }
         }
     }
 }
 
-#endif
-
-
-
-  
-
- 
-         
-
- 
-        
-     
-
-
-         
+#endif  
