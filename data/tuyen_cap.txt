@@ -1,10 +1,14 @@
-TC01|Tuyen cap Quang Trung|Quan Ha Dong|Diem dau BX Bus|Diem cuoi Cau To|Hoat dong
-TC02|Tuyen cap Tran Phu|Quan Thanh Xuan|Diem dau Nga Tu So|Diem cuoi Ha Dong|Hoat dong
-TC03|Tuyen cap Cau Giay|Quan Cau Giay|Diem dau Dai hoc QG|Diem cuoi Xuan Thuy|Bao tri
-TC04|Tuyen cap Le Van Luong|Quan Thanh Xuan|Diem dau Hoang Dao Thuy|Diem cuoi Le Van Thiem|Hoat dong
-TC05|Tuyen cap Nguyen Xien|Quan Hoang Mai|Diem dau Nguyen Trai|Diem cuoi Xa La|Hoat dong
-TC06|Tuyen cap Pham Hung|Quan Nam Tu Liem|Diem dau My Dinh|Diem cuoi Pham Van Dong|Bao tri
-TC07|Tuyen cap Xuan Thieu|Quan Cau Giay|Diem dau Cau Giay|Diem cuoi Ho Tung Mau|Hoat dong
-TC08|Tuyen cap Giai Phong|Quan Hai Ba Trung|Diem dau Ben xe So|Diem cuoi Dai Co Viet|Hoat dong
-TC09|Tuyen cap Lang Ha|Quan Dong Da|Diem dau Nga Tu Lang|Diem cuoi Giang Vo|Bao tri
-TC10|Tuyen cap Thai Ha|Quan Dong Da|Diem dau Chua Boc|Diem cuoi Hoang Cau|Hoat dong
+# data/goi_internet.txt
+# MaGoi|TenGoi|TocDo(Mbps)|GiaThang(VND)|ThoiHanSuDung|MoTa|TrangThai
+GOI01|Eco 150|150|220000|12 thang|Goi cuoc tieu chuan cho ho gia dinh nho|Dang hoat dong
+GOI02|Super 250|250|350000|12 thang|Goi cuoc toc do cao phuc vu giai tri va lam viec|Dang hoat dong
+GOI03|Business 500|500|880000|24 thang|Goi cuoc chuyen dung cho doanh nghiep vua va nho|Dang hoat dong
+GOI04|Enterprise 1Gbps|1000|1500000|24 thang|Goi cuoc bang thong cuc lon cho tap đoan va quan Net|Dang hoat dong
+GOI05|Basic 80|80|165000|6 thang|Goi cuoc tiet kiem cho sinh vien va nguoi doc than|Ngung
+GOI06|Fiber Home|200|290000|12 thang|Goi cuoc gia dinh kem truyen hinh so|Dang hoat dong
+GOI07|Giga Plus|300|420000|12 thang|Goi cuoc toi uu hoa choi game va livestream|Dang hoat dong
+GOI08|Pro 600|600|1100000|24 thang|Goi cuoc toc do cao cho cong ty cong nghe|Dang hoat dong
+GOI09|Starter 50|50|150000|6 thang|Goi cuoc co ban gia re|Ngung
+GOI10|Ultra 400|400|650000|12 thang|Goi cuoc pho thong cho ho kinh doanh lon|Dang hoat dong
+GOI11|Mega Speed|800|1250000|24 thang|Goi cuoc sieu toc do doanh nghiep|Dang hoat dong
+GOI12|Family Net|180|250000|12 thang|Goi cuoc luot web muot ma cho ca nha|Dang hoat dong
