@@ -1,6 +1,7 @@
 /* =======================================================
  * Tên tác giả: Đinh Văn Trường
  * Mô tả file: Chương trình chính (main.cpp) tổng hợp toàn bộ
+ * Yêu cầu: C++17 trở lên
  * ======================================================= */
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -8,8 +9,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <limits>
-#include <sstream>
+#include <functional>
+#include <type_traits>
 
 #include "LopCoSo.h"
 #include "NhapDuLieu.h"
@@ -25,30 +26,22 @@
 #include "PhieuSuaChua.h"
 #include "HoaDonCuoc.h"
 
-// Hàm nhập số nguyên chuẩn xác, chặn tuyệt đối trường hợp gõ ký tự lạ kèm số (vd: 8vshjkdj)
-int nhapSoTrongKhoang(int minVal, int maxVal, const std::string& thongBao) {
-    std::string line;
-    while (true) {
-        std::cout << thongBao;
-        if (std::getline(std::cin, line)) {
-            if (line.empty()) {
-                std::cout << " -> Loi: Khong duoc de trong! Vui long nhap lai.\n";
-                continue;
-            }
+ // ---------- Tiện ích dùng chung (C++17) ----------
 
-            std::stringstream ss(line);
-            int giaTri;
-            char extra;
+ // Kiểm tra lớp T có hàm tĩnh inTieuDe() hay không
+template <typename T, typename = void>
+struct CoInTieuDe : std::false_type {};
+template <typename T>
+struct CoInTieuDe<T, std::void_t<decltype(T::inTieuDe())>> : std::true_type {};
 
-            if (ss >> giaTri && !(ss >> extra)) {
-                if (giaTri >= minVal && giaTri <= maxVal) {
-                    return giaTri;
-                }
-            }
-        }
-        std::cout << " -> Loi: Vui long chi nhap so nguyen tu " << minVal << " den " << maxVal << "!\n";
-    }
+template <typename T>
+void inTieuDeNeuCo() {
+    if constexpr (CoInTieuDe<T>::value) T::inTieuDe();
 }
+
+// Hàm kiểm tra ràng buộc khi xóa: trả về "" nếu được xóa, ngược lại trả về lý do
+template <typename T>
+using RangBuocXoa = std::function<std::string(const T&)>;
 
 void hienThiMenuTong() {
     std::cout << "\n=========================================================\n";
@@ -69,8 +62,10 @@ void hienThiMenuTong() {
     std::cout << "=========================================================\n";
 }
 
+// Menu CRUD dùng chung cho mọi phân hệ (đã lược bỏ tìm kiếm từ khóa và sắp xếp)
 template <typename T>
-void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
+void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe,
+    RangBuocXoa<T> rangBuoc = nullptr) {
     int chon;
     do {
         std::cout << "\n--- QUAN LY " << tenPhanHe << " ---\n";
@@ -82,35 +77,26 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
         std::cout << "6. Luu du lieu vao file\n";
         std::cout << "0. Quay lai menu chinh\n";
 
-        chon = nhapSoTrongKhoang(0, 6, "Chon chuc nang (0-6): ");
+        chon = NhapDuLieu::nhapSoNguyenTrongKhoang("Chon chuc nang (0-6): ", 0, 6);
         std::cout << "\n";
 
         switch (chon) {
         case 1: {
-            // Tự động kiểm tra và in tiêu đề bảng nếu lớp T có hỗ trợ hàm inTieuDe()
-            if constexpr (requires { T::inTieuDe(); }) {
-                ql.hienThi([ ] () { T::inTieuDe(); });
-            }
-            else {
-                ql.hienThi();
-            }
+            ql.hienThi([] { inTieuDeNeuCo<T>(); });
             break;
         }
         case 2: {
             T obj;
             try {
-                obj.nhapThongTin(); // Lệnh này giờ có thể ném ra lỗi
-
+                obj.nhapThongTin();
                 if (obj.getMaDinhDanh().empty()) {
                     std::cout << " -> Thao tac da duoc huy, khong them vao danh sach.\n";
                 }
                 else {
                     ql.themMoi(obj);
-                    std::cout << " -> Them moi thanh cong!\n"; // Bổ sung thông báo thành công
                 }
-            } 
+            }
             catch (const std::invalid_argument& e) {
-                // In chính xác câu lỗi bạn viết trong throw ra màn hình
                 std::cout << "\n -> [LOI NHAP DU LIEU]: " << e.what() << "\n";
                 std::cout << " -> DA HUY THAO TAC THEM MOI!\n";
             }
@@ -121,6 +107,7 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
             T* p = ql.timTheoMa(ma);
             if (p != nullptr) {
                 std::cout << " -> Tim thay:\n";
+                inTieuDeNeuCo<T>();
                 p->hienThiThongTin();
             }
             else {
@@ -135,8 +122,11 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
         }
         case 5: {
             std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma dinh danh can xoa: ");
-            if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa doi tuong nay?")) {
-                ql.xoaTheoMa(ma);
+            if (ql.timTheoMa(ma) == nullptr) {
+                std::cout << " -> Khong tim thay ma: " << ma << "\n";
+            }
+            else if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa doi tuong nay?")) {
+                ql.xoaTheoMa(ma, rangBuoc);
             }
             else {
                 std::cout << " -> Da huy thao tac xoa.\n";
@@ -165,68 +155,96 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
 }
 
 int main() {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
-
     try {
-        QuanLyLuuTru<GoiInternet>      qlGoiInternet("data/goi_internet.txt");
-        qlGoiInternet.docTuFile();
-
+        // Khởi tạo các repository độc lập
+        QuanLyLuuTru<GoiInternet>     qlGoiInternet("data/goi_internet.txt");
         QuanLyLuuTru<TuyenCap>         qlTuyenCap("data/tuyen_cap.txt");
-        qlTuyenCap.docTuFile();
-
         QuanLyLuuTru<KhachHang>        qlKhachHang("data/khach_hang.txt");
-        qlKhachHang.docTuFile();
-
-        QuanLyLuuTru<HopDong>          qlHopDong("data/hop_dong.txt");
-        qlHopDong.docTuFile();
-
-        QuanLyLuuTru<ThietBi>          qlThietBi("data/thiet_bi.txt");
-        qlThietBi.docTuFile();
-
-        QuanLyLuuTru<CongOLT>          qlOLT("data/cong_olt.txt");
-        qlOLT.docTuFile();
-
-        QuanLyLuuTru<PhieuLapDat>      qlLapDat("data/phieu_lap_dat.txt");
-        qlLapDat.docTuFile();
-
-        QuanLyLuuTru<PhieuSuaChua>     qlSuaChua("data/phieu_sua_chua.txt");
-        qlSuaChua.docTuFile();
-
-        QuanLyLuuTru<HoaDonCuoc>       qlHoaDon("data/hoa_don_cuoc.txt");
-        qlHoaDon.docTuFile();
-
         QuanLyLuuTru<NhanVienKyThuat>  qlNhanVien("data/nhan_vien.txt");
-        qlNhanVien.docTuFile();
+        QuanLyLuuTru<ThietBi>          qlThietBi("data/thiet_bi.txt");
 
-        // Gắn kết nối kiểm tra khóa ngoại cho CongOLT
+        // HopDong tham chiếu: Khach hang, Goi cuoc, Thiet bi
+        HopDong::setDBKhachHang(&qlKhachHang);
+        HopDong::setKiemTraGoiCuoc([&](const std::string& ma) {
+            return qlGoiInternet.timTheoMa(ma) != nullptr;
+            });
+        HopDong::setKiemTraThietBi([&](const std::string& ma) {
+            return qlThietBi.timTheoMa(ma) != nullptr;
+            });
+        QuanLyLuuTru<HopDong>          qlHopDong("data/hop_dong.txt");
+        HopDong::setKiemTraMaTonTai([&](const std::string& ma) {
+            return qlHopDong.timTheoMa(ma) != nullptr;
+            });
+
+        // ThietBi tham chiếu: Hop dong
+        ThietBi::setKiemTraHopDong([&](const std::string& ma) {
+            return qlHopDong.timTheoMa(ma) != nullptr;
+            });
+
+        // CongOLT tham chiếu: Khach hang, Tuyen cap
         CongOLT::setDBKhachHang(&qlKhachHang);
         CongOLT::setKiemTraTuyenCap([&](const std::string& ma) {
             return qlTuyenCap.timTheoMa(ma) != nullptr;
-        });
+            });
+        QuanLyLuuTru<CongOLT>          qlOLT("data/cong_olt.txt");
 
-        // Gắn kết nối kiểm tra khóa ngoại cho ThietBi (kiểm tra mã Hợp đồng HDO)
-        ThietBi::setKiemTraHopDong([&](const std::string& ma) {
-            return qlHopDong.timTheoMa(ma) != nullptr;
-        });
+        // Các phiếu / hóa đơn
+        QuanLyLuuTru<PhieuLapDat>      qlLapDat("data/phieu_lap_dat.txt");
+        QuanLyLuuTru<PhieuSuaChua>     qlSuaChua("data/phieu_sua_chua.txt");
+        QuanLyLuuTru<HoaDonCuoc>       qlHoaDon("data/hoa_don_cuoc.txt");
+
+        // ---------- Ràng buộc khi xóa ----------
+        RangBuocXoa<GoiInternet> rbGoi = [&](const GoiInternet& g) -> std::string {
+            for (const auto& h : qlHopDong.getDanhSach())
+                if (h.getMaGoiCuoc() == g.getMaDinhDanh())
+                    return "Goi cuoc dang duoc dung trong hop dong " + h.getMaDinhDanh();
+            return "";
+            };
+        RangBuocXoa<TuyenCap> rbTuyenCap = [&](const TuyenCap& t) -> std::string {
+            for (const auto& c : qlOLT.getDanhSach())
+                if (c.getMaTuyenCap() == t.getMaDinhDanh())
+                    return "Tuyen cap dang co cong OLT " + c.getMaDinhDanh();
+            return "";
+            };
+        RangBuocXoa<KhachHang> rbKhachHang = [&](const KhachHang& k) -> std::string {
+            for (const auto& h : qlHopDong.getDanhSach())
+                if (h.getMaKhachHang() == k.getMaDinhDanh())
+                    return "Khach hang dang co hop dong " + h.getMaDinhDanh();
+            for (const auto& c : qlOLT.getDanhSach())
+                if (c.getMaKhachHang() == k.getMaDinhDanh())
+                    return "Khach hang dang duoc gan cho cong OLT " + c.getMaDinhDanh();
+            return "";
+            };
+        RangBuocXoa<HopDong> rbHopDong = [&](const HopDong& h) -> std::string {
+            for (const auto& t : qlThietBi.getDanhSach())
+                if (t.getMaHopDong() == h.getMaDinhDanh())
+                    return "Hop dong dang gan voi thiet bi " + t.getMaDinhDanh();
+            return "";
+            };
+        RangBuocXoa<ThietBi> rbThietBi = [&](const ThietBi& t) -> std::string {
+            for (const auto& h : qlHopDong.getDanhSach())
+                if (h.getMaThietBi() == t.getMaDinhDanh())
+                    return "Thiet bi dang duoc dung trong hop dong " + h.getMaDinhDanh();
+            return "";
+            };
 
         int luaChon;
         do {
             hienThiMenuTong();
-            luaChon = nhapSoTrongKhoang(0, 11, "Nhap lua chon cua ban (0-11): ");
+            luaChon = NhapDuLieu::nhapSoNguyenTrongKhoang("Nhap lua chon cua ban (0-11): ", 0, 11);
             std::cout << "\n";
 
             switch (luaChon) {
-            case 1: menuCRUD(qlGoiInternet, "GOI INTERNET (UC01 - Tran Ngoc Huy)"); break;
-            case 2: menuCRUD(qlTuyenCap, "TUYEN CAP (UC02 - Tran Ngoc Huy)"); break;
-            case 3: menuCRUD(qlKhachHang, "KHACH HANG (UC03 - Hoang Trong Khoa)"); break;
-            case 4: menuCRUD(qlHopDong, "HOP DONG THUE BAO (UC04 - Hoang Trong Khoa)"); break;
-            case 5: menuCRUD(qlThietBi, "THIET BI ONT/MODEM (UC05 - Nguyen Nhu Minh)"); break;
-            case 6: menuCRUD(qlOLT, "CONG OLT (UC06 - Nguyen Nhu Minh)"); break;
-            case 7: menuCRUD(qlLapDat, "PHIEU LAP DAT (UC07 - Dinh Van Truong)"); break;
-            case 8: menuCRUD(qlSuaChua, "PHIEU SUA CHUA (UC08 - Dinh Van Truong)"); break;
-            case 9: menuCRUD(qlHoaDon, "HOA DON CUOC (UC09 - Nguyen Duc Huy)"); break;
-            case 10: menuCRUD(qlNhanVien, "NHAN VIEN KY THUAT (UC10 - Nguyen Duc Huy)"); break;
+            case 1: menuCRUD<GoiInternet>(qlGoiInternet, "GOI INTERNET (UC01 - Tran Ngoc Huy)", rbGoi); break;
+            case 2: menuCRUD<TuyenCap>(qlTuyenCap, "TUYEN CAP (UC02 - Tran Ngoc Huy)", rbTuyenCap); break;
+            case 3: menuCRUD<KhachHang>(qlKhachHang, "KHACH HANG (UC03 - Hoang Trong Khoa)", rbKhachHang); break;
+            case 4: menuCRUD<HopDong>(qlHopDong, "HOP DONG THUE BAO (UC04 - Hoang Trong Khoa)", rbHopDong); break;
+            case 5: menuCRUD<ThietBi>(qlThietBi, "THIET BI ONT/MODEM (UC05 - Nguyen Nhu Minh)", rbThietBi); break;
+            case 6: menuCRUD<CongOLT>(qlOLT, "CONG OLT (UC06 - Nguyen Nhu Minh)"); break;
+            case 7: menuCRUD<PhieuLapDat>(qlLapDat, "PHIEU LAP DAT (UC07 - Dinh Van Truong)"); break;
+            case 8: menuCRUD<PhieuSuaChua>(qlSuaChua, "PHIEU SUA CHUA (UC08 - Dinh Van Truong)"); break;
+            case 9: menuCRUD<HoaDonCuoc>(qlHoaDon, "HOA DON CUOC (UC09 - Nguyen Duc Huy)"); break;
+            case 10: menuCRUD<NhanVienKyThuat>(qlNhanVien, "NHAN VIEN KY THUAT (UC10 - Nguyen Duc Huy)"); break;
             case 11: {
                 std::cout << "--- THONG KE TONG HOP DU LIEU ---\n";
                 std::cout << " - Tong so Goi cuoc: " << qlGoiInternet.getDanhSach().size() << "\n";
@@ -255,10 +273,11 @@ int main() {
 
         } while (luaChon != 0);
 
-    } 
+    }
     catch (const std::exception& e) {
         std::cerr << "\n -> Loi he thong (Exception): " << e.what() << "\n";
         std::cerr << " -> Chuong trinh buoc phai thoat an toan.\n";
+        return 1;
     }
 
     return 0;
