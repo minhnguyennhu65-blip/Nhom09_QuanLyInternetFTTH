@@ -1,10 +1,14 @@
-MG01|Goi Eco 30Mbps|30|120000|Goi cuoc co ban cho hoc sinh sinh vien|Dang hoat dong
-MG02|Goi Basic 50Mbps|50|160000|Goi cuoc pho thong cho gia dinh nho|Dang hoat dong
-MG03|Goi Family 80Mbps|80|220000|Goi cuoc tieu chuan cho ho gia dinh|Dang hoat dong
-MG04|Goi Fast 100Mbps|100|270000|Goi toc do cao cho giai tri va lam viec|Dang hoat dong
-MG05|Goi Super 150Mbps|150|350000|Goi cuoc toc do nhanh cho da thiet bi|Dang hoat dong
-MG06|Goi Gamer 200Mbps|200|450000|Goi cuoc chuyen biet cho game thu|Dang hoat dong
-MG07|Goi Fiber Pro 300Mbps|300|650000|Goi cap quang toc do cao cho van phong|Dang hoat dong
-MG08|Goi Business 500Mbps|500|1200000|Goi doanh nghiep vua va nho bang thong lon|Dang hoat dong
-MG09|Goi Enterprise 1Gbps|1000|2500000|Goi doanh nghiep lon toc do gigabit|Dang hoat dong
-MG10|Goi Student 40Mbps|40|130000|Goi cuoc tiet kiem danh cho sinh vien|Ngung
+# data/goi_internet.txt
+# MaGoi|TenGoi|TocDo(Mbps)|GiaThang(VND)|ThoiHanSuDung|MoTa|TrangThai
+GOI01|Eco 150|150|220000|12 thang|Goi cuoc tieu chuan cho ho gia dinh nho|Dang hoat dong
+GOI02|Super 250|250|350000|12 thang|Goi cuoc toc do cao phuc vu giai tri va lam viec|Dang hoat dong
+GOI03|Business 500|500|880000|24 thang|Goi cuoc chuyen dung cho doanh nghiep vua va nho|Dang hoat dong
+GOI04|Enterprise 1Gbps|1000|1500000|24 thang|Goi cuoc bang thong cuc lon cho tap đoan va quan Net|Dang hoat dong
+GOI05|Basic 80|80|165000|6 thang|Goi cuoc tiet kiem cho sinh vien va nguoi doc than|Ngung
+GOI06|Fiber Home|200|290000|12 thang|Goi cuoc gia dinh kem truyen hinh so|Dang hoat dong
+GOI07|Giga Plus|300|420000|12 thang|Goi cuoc toi uu hoa choi game va livestream|Dang hoat dong
+GOI08|Pro 600|600|1100000|24 thang|Goi cuoc toc do cao cho cong ty cong nghe|Dang hoat dong
+GOI09|Starter 50|50|150000|6 thang|Goi cuoc co ban gia re|Ngung
+GOI10|Ultra 400|400|650000|12 thang|Goi cuoc pho thong cho ho kinh doanh lon|Dang hoat dong
+GOI11|Mega Speed|800|1250000|24 thang|Goi cuoc sieu toc do doanh nghiep|Dang hoat dong
+GOI12|Family Net|180|250000|12 thang|Goi cuoc luot web muot ma cho ca nha|Dang hoat dong
