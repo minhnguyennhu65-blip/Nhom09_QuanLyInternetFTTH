@@ -2,9 +2,6 @@
 - Tên tác giả: Hoàng Trọng Khoa
 - Mã sinh viên: B24DCVT204
 - Mô tả file: Lớp quản lý Khách Hàng
- *
-- Định dạng một dòng trong file (8 trường, ngăn cách bởi '|'):
--   maKH|tenKhachHang|soDienThoai|diaChiLapDat|email|loaiKhachHang|ngayDangKy|trangThai
 - ======================================================= */
 
 #ifndef KHACH_HANG_H
