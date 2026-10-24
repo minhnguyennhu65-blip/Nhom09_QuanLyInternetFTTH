@@ -1,8 +1,8 @@
 /* =======================================================
-- Tên tác giả: Hoàng Trọng Khoa
-- Mã sinh viên: B24DCVT204
-- Mô tả file: Lớp quản lý Hợp Đồng Thuê Bao
-- ======================================================= */
+ * Tên tác giả: Hoàng Trọng Khoa
+ * Mã sinh viên: B24DCVT204
+ * Mô tả file: Lớp quản lý Hợp Đồng Thuê Bao
+ * ======================================================= */
 
 #ifndef HOP_DONG_H
 #define HOP_DONG_H
@@ -40,8 +40,6 @@ private:
     inline static std::function<bool(const std::string&)> kiemTraThietBi = nullptr;
     inline static std::function<bool(const std::string&)> kiemTraMaTonTai = nullptr;
 
-    // ---------- Hàm kiểm tra / tiện ích nội bộ ----------
-
     static bool hopLeTrangThai(const std::string& tt) {
         return tt == "Hoat dong" || tt == "Het han" || tt == "Huy";
     }
@@ -50,8 +48,7 @@ private:
         return l == "Ca nhan" || l == "Doanh nghiep";
     }
 
-    // Chuẩn hóa mã: chỉ chữ cái không dấu, số, '_' hoặc '-'; viết hoa
-static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
+    static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
         if (ma.empty())
             throw std::invalid_argument(ten + " khong duoc rong!");
         std::string kq = ma;
@@ -65,7 +62,6 @@ static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
         return kq;
     }
 
-    // Tách theo '|', giữ lại cả trường rỗng ở giữa và cuối
     static std::vector<std::string> tachTruong(const std::string& s) {
         std::vector<std::string> kq;
         std::size_t dau = 0;
@@ -81,7 +77,6 @@ static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
         return kq;
     }
 
-    // Chuỗi -> số thực không âm; toàn bộ chuỗi phải là số, từ chối nan/inf/hex
     static double phanTichGia(const std::string& s) {
         if (!s.empty() && s.find_first_not_of("0123456789.eE+-") == std::string::npos) {
             char* ketThuc = nullptr;
@@ -95,14 +90,12 @@ static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
         return s.size() <= n ? s : s.substr(0, n - 2) + "..";
     }
 
-    // Đọc một dòng bắt buộc; 'HUY' -> ném invalid_argument("HUY") để hủy cả thao tác
     static std::string docHoacHuy(const std::string& thongBao) {
         std::string s = NhapDuLieu::nhapChuoi(thongBao + " (hoac nhap 'HUY'): ");
         if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
         return s;
     }
 
-    // Đọc một dòng tùy chọn: trả về "" nếu bỏ trống (giữ nguyên); 'HUY' như trên
     static std::string docTuyChon(const std::string& thongBao) {
         std::string s = NhapDuLieu::nhapChuoiHoacGiuNguyen(
             thongBao + " (bo trong de giu nguyen, hoac nhap 'HUY'): ", "");
@@ -110,7 +103,6 @@ static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
         return s;
     }
 
-    // Lặp lại cho đến khi setter không ném ngoại lệ; 'HUY' được ném tiếp ra ngoài
     template <typename F>
     static void lap(F thucHien) {
         while (true) {
@@ -122,8 +114,7 @@ static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
         }
     }
 
-    // Chọn trạng thái bằng số 1-3; giu = true thì bỏ trống = giữ nguyên
-void chonTrangThai(bool giu) {
+    void chonTrangThai(bool giu) {
         std::string s = giu
             ? docTuyChon("Chon trang thai (1-3, hien tai: " + trangThai + ")")
             : docHoacHuy("Chon trang thai (1-3)");
@@ -138,28 +129,26 @@ void chonTrangThai(bool giu) {
 public:
     HopDong() = default;
 
-    // ---------- Gắn khóa ngoại ----------
+    // ---------- Gắn khóa ngoại (Các hàm đang bị báo thiếu) ----------
     static void setDBKhachHang(QuanLyLuuTru<KhachHang>* db) { dbKhachHang = db; }
     static void setKiemTraGoiCuoc(std::function<bool(const std::string&)> f) { kiemTraGoiCuoc = std::move(f); }
     static void setKiemTraThietBi(std::function<bool(const std::string&)> f) { kiemTraThietBi = std::move(f); }
     static void setKiemTraMaTonTai(std::function<bool(const std::string&)> f) { kiemTraMaTonTai = std::move(f); }
 
-    // In tiêu đề bảng chuẩn có dấu phân cách ' | '
     static void inTieuDe() {
         std::cout << std::left
-            << std::setw(8)  << "Ma HD"      << " | "
-            << std::setw(8)  << "Ma KH"      << " | "
-            << std::setw(8)  << "Ma Goi"     << " | "
-            << std::setw(8)  << "Ma TB"      << " | "
-            << std::setw(11) << "Ngay ky"    << " | "
-            << std::setw(11) << "Ngay het"   << " | "
-            << std::setw(13) << "Gia (VND)"  << " | "
-            << std::setw(13) << "Loai KH"    << " | "
+            << std::setw(8)  << "Ma HD"     << " | "
+            << std::setw(8)  << "Ma KH"     << " | "
+            << std::setw(8)  << "Ma Goi"    << " | "
+            << std::setw(8)  << "Ma TB"     << " | "
+            << std::setw(11) << "Ngay ky"   << " | "
+            << std::setw(11) << "Ngay het"  << " | "
+            << std::setw(13) << "Gia (VND)" << " | "
+            << std::setw(13) << "Loai KH"   << " | "
             << std::setw(11) << "Trang thai" << "\n"
             << std::string(115, '-') << "\n";
     }
 
-    // ---------- Getters ----------
     std::string getMaHopDong() const { return maDinhDanh; }
     const std::string& getMaKhachHang() const { return maKhachHang; }
     const std::string& getMaGoiCuoc() const { return maGoiCuoc; }
@@ -170,9 +159,6 @@ public:
     const std::string& getTrangThai() const { return trangThai; }
     const std::string& getLoaiKhachHang() const { return loaiKhachHang; }
 
-    // ---------- Setters có kiểm tra hợp lệ (ném invalid_argument) ----------
-
-    // Đặt khách hàng; loại khách hàng được lấy tự động từ dữ liệu Khách hàng
     void setMaKhachHang(const std::string& ma) {
         std::string chuan = chuanHoaMa(ma, "Ma khach hang");
         if (dbKhachHang == nullptr)
@@ -181,7 +167,7 @@ public:
         if (kh == nullptr)
             throw std::invalid_argument("Khach hang [" + chuan + "] khong ton tai!");
         maKhachHang = chuan;
-loaiKhachHang = kh->getLoaiKhachHang();
+        loaiKhachHang = kh->getLoaiKhachHang();
     }
 
     void setMaGoiCuoc(const std::string& ma) {
@@ -198,7 +184,6 @@ loaiKhachHang = kh->getLoaiKhachHang();
         maThietBi = chuan;
     }
 
-    // Ngày ký và ngày hết hạn phụ thuộc nhau nên đặt cùng một chỗ
     void setThoiHan(const std::string& ky, const std::string& hetHan) {
         if (!NhapDuLieu::laNgayThangHopLe(ky))
             throw std::invalid_argument(
@@ -227,9 +212,6 @@ loaiKhachHang = kh->getLoaiKhachHang();
         trangThai = tt;
     }
 
-    // ---------- Các hàm ghi đè từ LopCoSo ----------
-
-    // Thêm hợp đồng mới trên đối tượng tạm; gõ 'HUY' ở bất kỳ bước nào thì hủy hết
     void nhapThongTin() override {
         HopDong tam;
         try {
@@ -246,7 +228,7 @@ loaiKhachHang = kh->getLoaiKhachHang();
             lap([&] {
                 std::string ky = docHoacHuy("Nhap ngay ky (DD/MM/YYYY)");
                 std::string het = docHoacHuy("Nhap ngay het han (DD/MM/YYYY)");
-tam.setThoiHan(ky, het);
+                tam.setThoiHan(ky, het);
             });
             lap([&] { tam.setGiaThieuDung(phanTichGia(docHoacHuy("Nhap gia thue dung (>= 0)"))); });
             std::cout << "\nTrang thai hop dong:\n1. Hoat dong\n2. Het han\n3. Huy\n";
@@ -255,7 +237,7 @@ tam.setThoiHan(ky, het);
         catch (const std::invalid_argument& e) {
             if (std::string(e.what()) == "HUY") {
                 std::cout << " -> Da huy thao tac them hop dong.\n";
-                maDinhDanh = ""; // báo cho main biết đã hủy, không gọi themMoi
+                maDinhDanh = "";
                 return;
             }
             throw;
@@ -263,7 +245,6 @@ tam.setThoiHan(ky, het);
         *this = tam;
     }
 
-    // Cập nhật: bỏ trống = giữ nguyên, không sửa mã; 'HUY' hủy cả lần cập nhật
     void capNhatThongTin() override {
         HopDong tam = *this;
         try {
@@ -287,7 +268,7 @@ tam.setThoiHan(ky, het);
                 std::string ky = docTuyChon("Ngay ky moi (hien tai: " + tam.ngayKy + ")");
                 std::string het = docTuyChon("Ngay het han moi (hien tai: " + tam.ngayHetHan + ")");
                 tam.setThoiHan(ky.empty() ? tam.ngayKy : ky,
-                               het.empty() ? tam.ngayHetHan : het);
+                              het.empty() ? tam.ngayHetHan : het);
             });
             lap([&] {
                 std::ostringstream hienTai;
@@ -306,13 +287,12 @@ tam.setThoiHan(ky, het);
         *this = tam;
     }
 
-    // Một dòng căn cột, khớp với inTieuDe()
     void hienThiThongTin() const override {
         std::ostringstream gia;
         gia << std::fixed << std::setprecision(0) << giaThieuDung;
         std::cout << std::left
             << std::setw(8)  << cat(maDinhDanh, 8)    << " | "
-<< std::setw(8)  << cat(maKhachHang, 8)   << " | "
+            << std::setw(8)  << cat(maKhachHang, 8)   << " | "
             << std::setw(8)  << cat(maGoiCuoc, 8)     << " | "
             << std::setw(8)  << cat(maThietBi, 8)     << " | "
             << std::setw(11) << ngayKy                << " | "
@@ -331,7 +311,6 @@ tam.setThoiHan(ky, het);
         return ss.str();
     }
 
-    // Đọc một dòng file; sai thì ném ngoại lệ và KHÔNG làm thay đổi đối tượng
     void docTuChuoi(const std::string& dong) override {
         std::vector<std::string> f = tachTruong(dong);
         if (f.size() != 9)
@@ -339,7 +318,7 @@ tam.setThoiHan(ky, het);
 
         HopDong tam;
         tam.setMaDinhDanh(chuanHoaMa(f[0], "Ma hop dong"));
-        tam.setMaKhachHang(f[1]);   // đồng thời lấy loại khách hàng mới nhất từ dữ liệu Khách hàng
+        tam.setMaKhachHang(f[1]);
         tam.setMaGoiCuoc(f[2]);
         tam.setMaThietBi(f[3]);
         tam.setThoiHan(f[4], f[5]);
