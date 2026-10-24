@@ -4,7 +4,6 @@
  * Mô tả file: Use Case 01 - Quản lý Gói cước Internet
  * ======================================================= */
 
-
 #ifndef GOI_INTERNET_H
 #define GOI_INTERNET_H
 
@@ -27,11 +26,12 @@ private:
     std::string tenGoi;
     int tocDo;              // Mbps, >= 0
     double giaThang;        // VND/thang, >= 0
+    std::string thoiHanSuDung; // Thời hạn sử dụng (ví dụ: 12 tháng, 24 tháng)
     std::string moTa;
     std::string trangThai;  // "Dang hoat dong" / "Ngung"
 
     static const std::vector<std::string>& danhSachTrangThai() {
-        static const std::vector<std::string> ds = { "Dang hoat dong", "Ngung" };
+        static const std::vector<std::string> ds = {"Dang hoat dong", "Ngung"};
         return ds;
     }
 
@@ -39,6 +39,7 @@ private:
         tenGoi = NhapDuLieu::nhapChuoi("Nhap ten goi: ");
         tocDo = NhapDuLieu::nhapSoNguyenDuong("Nhap toc do (Mbps): ");
         giaThang = NhapDuLieu::nhapSoThucDuong("Nhap gia cuoc/thang (VND): ");
+        thoiHanSuDung = NhapDuLieu::nhapChuoi("Nhap thoi han su dung (VD: 12 thang): ");
         moTa = NhapDuLieu::nhapChuoi("Nhap mo ta goi: ");
         trangThai = chonTuDanhSach("Chon trang thai:", danhSachTrangThai());
     }
@@ -62,27 +63,32 @@ private:
         if (s.find_first_not_of(" \t") == std::string::npos)
             throw std::runtime_error(ten + " khong duoc de trong");
     }
+
     static bool thuocDanhSach(const std::string& gt, const std::vector<std::string>& ds) {
         return std::find(ds.begin(), ds.end(), gt) != ds.end();
     }
+
     static std::string chonTuDanhSach(const std::string& thongBao, const std::vector<std::string>& ds) {
         std::cout << thongBao << "\n";
-        for (size_t i = 0; i < ds.size(); i++) std::cout << "    " << (i + 1) << ". " << ds[i] << "\n";
+        for (size_t i = 0; i < ds.size(); i++) std::cout << "   " << (i + 1) << ". " << ds[i] << "\n";
         while (true) {
-            int chon = NhapDuLieu::nhapSoNguyenDuong("    Chon (1-" + std::to_string(ds.size()) + "): ");
+            int chon = NhapDuLieu::nhapSoNguyenDuong("   Chon (1-" + std::to_string(ds.size()) + "): ");
             if (chon >= 1 && chon <= static_cast<int>(ds.size())) return ds[chon - 1];
             std::cout << " -> Loi: Lua chon khong hop le!\n";
         }
     }
+
     static std::string catChuoi(const std::string& s, size_t max) {
         return s.size() <= max ? s : s.substr(0, max - 3) + "...";
     }
+
     static int parseSoNguyenKhongAm(const std::string& s, const std::string& ten) {
-if (s.empty() || !std::all_of(s.begin(), s.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+        if (s.empty() || !std::all_of(s.begin(), s.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
             throw std::runtime_error(ten + " phai la so nguyen >= 0");
         try { return std::stoi(s); }
         catch (...) { throw std::runtime_error(ten + " vuot qua gioi han so nguyen"); }
     }
+
     static double parseSoThucKhongAm(const std::string& s, const std::string& ten) {
         size_t daDoc = 0; double gt = 0;
         try { gt = std::stod(s, &daDoc); }
@@ -93,12 +99,13 @@ if (s.empty() || !std::all_of(s.begin(), s.end(), [](unsigned char c) { return s
     }
 
 public:
-    GoiInternet() : LopCoSo(), tenGoi(""), tocDo(0), giaThang(0.0), moTa(""), trangThai("") {}
+    GoiInternet() : LopCoSo(), tenGoi(""), tocDo(0), giaThang(0.0), thoiHanSuDung(""), moTa(""), trangThai("") {}
 
     std::string getMaGoi() const { return maDinhDanh; }
     std::string getTenGoi() const { return tenGoi; }
     int getTocDo() const { return tocDo; }
     double getGiaThang() const { return giaThang; }
+    std::string getThoiHanSuDung() const { return thoiHanSuDung; }
     std::string getMoTa() const { return moTa; }
     std::string getTrangThai() const { return trangThai; }
 
@@ -110,76 +117,75 @@ public:
     }
 
     void capNhatThongTin() override {
-        std::cout << "(Ma goi " << maDinhDanh << " duoc khoa, khong the thay doi)\n";
+        std::cout << "(Ma goi " << maDinhDanh << " duoc khoa, khong thể thay doi)\n";
         nhapThuocTinh();
     }
 
     static void inTieuDeBang() {
         std::cout << std::left
-            << std::setw(10) << "Ma goi"
-            << std::setw(20) << "Ten goi"
-            << std::setw(14) << "Toc do(Mbps)"
-            << std::setw(16) << "Gia/thang(VND)"
-            << std::setw(32) << "Mo ta"
-            << std::setw(16) << "Trang thai" << "\n"
-            << std::string(108, '-') << "\n";
+                  << std::setw(10) << "Ma goi"
+                  << std::setw(18) << "Ten goi"
+                  << std::setw(14) << "Toc do(Mbps)"
+                  << std::setw(16) << "Gia/thang(VND)"
+                  << std::setw(16) << "Thoi han"
+                  << std::setw(26) << "Mo ta"
+                  << std::setw(16) << "Trang thai" << "\n"
+                  << std::string(116, '-') << "\n";
     }
 
     void hienThiThongTin() const override {
         std::cout << std::left
-            << std::setw(10) << catChuoi(maDinhDanh, 9)
-            << std::setw(20) << catChuoi(tenGoi, 19)
-            << std::setw(14) << tocDo
-            << std::setw(16) << std::fixed << std::setprecision(0) << giaThang
-            << std::setw(32) << catChuoi(moTa, 31)
-            << std::setw(16) << trangThai << "\n";
+                  << std::setw(10) << catChuoi(maDinhDanh, 9)
+                  << std::setw(18) << catChuoi(tenGoi, 17)
+                  << std::setw(14) << tocDo
+                  << std::setw(16) << std::fixed << std::setprecision(0) << giaThang
+                  << std::setw(16) << catChuoi(thoiHanSuDung, 15)
+                  << std::setw(26) << catChuoi(moTa, 25)
+                  << std::setw(16) << trangThai << "\n";
     }
 
     std::string chuyenThanhChuoi() const override {
         std::ostringstream oss;
         oss << std::setprecision(15) << giaThang;
         return maDinhDanh + "|" + tenGoi + "|" + std::to_string(tocDo) + "|" +
-            oss.str() + "|" + moTa + "|" + trangThai;
+               oss.str() + "|" + thoiHanSuDung + "|" + moTa + "|" + trangThai;
     }
 
     void docTuChuoi(const std::string& dongDuLieu) override {
         std::vector<std::string> f = tachTruong(dongDuLieu);
-        if (f.size() != 6) {
-            throw std::runtime_error("Sai so cot (can 6, co " + std::to_string(f.size()) + ")");
+        if (f.size() != 7) {
+            throw std::runtime_error("Sai so cot (can 7, co " + std::to_string(f.size()) + ")");
         }
         kiemTraKhongRong(f[0], "maGoi");
         if (f[0].find_first_of(" \t") != std::string::npos) {
             throw std::runtime_error("maGoi khong duoc chua khoang trang");
-}
+        }
         kiemTraKhongRong(f[1], "tenGoi");
         int tocDoMoi = parseSoNguyenKhongAm(f[2], "tocDo");
         double giaMoi = parseSoThucKhongAm(f[3], "giaThang");
-        kiemTraKhongRong(f[4], "moTa");
-        if (!thuocDanhSach(f[5], danhSachTrangThai())) {
-            throw std::runtime_error("trangThai khong hop le: " + f[5]);
+        kiemTraKhongRong(f[4], "thoiHanSuDung");
+        kiemTraKhongRong(f[5], "moTa");
+        if (!thuocDanhSach(f[6], danhSachTrangThai())) {
+            throw std::runtime_error("trangThai khong hop le: " + f[6]);
         }
 
         maDinhDanh = f[0];
         tenGoi = f[1];
         tocDo = tocDoMoi;
         giaThang = giaMoi;
-        moTa = f[4];
-        trangThai = f[5];
+        thoiHanSuDung = f[4];
+        moTa = f[5];
+        trangThai = f[6];
     }
 };
 
-// =====================================================
-// MENU USE CASE
-// =====================================================
 namespace UC01 {
-
     const std::string FILE_GOI_INTERNET = "data/goi_internet.txt";
     const std::string FILE_HOP_DONG = "data/hop_dong.txt";
 
     inline bool goiDangDuocThamChieu(const std::string& maGoi) {
         std::ifstream file(FILE_HOP_DONG);
         if (!file.is_open()) return false;
-
         std::string dong;
         while (std::getline(file, dong)) {
             if (dong.empty() || dong[0] == '#') continue;
@@ -193,7 +199,7 @@ namespace UC01 {
         std::cout << "\n--- THEM GOI INTERNET ---\n";
         std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma goi (maGoi): ");
         if (ql.timTheoMa(ma) != nullptr) {
-            std::cout << " -> Loi: Ma goi '" << ma << "' da ton tai! Khong them du lieu.\n";
+            std::cout << " -> Loi: Ma goi '" << ma << "' da ton tai!\n";
             return;
         }
         GoiInternet goi;
@@ -205,13 +211,20 @@ namespace UC01 {
     inline void hienThiDanhSach(QuanLyLuuTru<GoiInternet>& ql) {
         std::cout << "\n--- DANH SACH GOI INTERNET ---\n";
         ql.docTuFile();
-        if (ql.getDanhSach().empty()) {
+        const auto& ds = ql.getDanhSach();
+        if (ds.empty()) {
             std::cout << " -> Danh sach rong!\n";
             return;
         }
         GoiInternet::inTieuDeBang();
-        ql.hienThi();
-        std::cout << "Tong so goi: " << ql.getDanhSach().size() << "\n";
+        double tongGia = 0;
+        for (const auto& goi : ds) {
+            goi.hienThiThongTin();
+            tongGia += goi.getGiaThang();
+        }
+        std::cout << std::string(116, '-') << "\n";
+        std::cout << " => Tong so goi cước: " << ds.size() 
+                  << " | Tong gia tri trung binh/thang: " << std::fixed << std::setprecision(0) << (tongGia / ds.size()) << " VND\n";
     }
 
     inline void timKiemGoi(QuanLyLuuTru<GoiInternet>& ql) {
@@ -224,6 +237,7 @@ namespace UC01 {
         }
         GoiInternet::inTieuDeBang();
         goi->hienThiThongTin();
+        std::cout << std::string(116, '-') << "\n";
     }
 
     inline void suaGoi(QuanLyLuuTru<GoiInternet>& ql) {
@@ -235,7 +249,7 @@ namespace UC01 {
             return;
         }
         std::cout << "Thong tin hien tai:\n";
-GoiInternet::inTieuDeBang();
+        GoiInternet::inTieuDeBang();
         goi->hienThiThongTin();
         std::cout << "\nNhap thong tin moi:\n";
         ql.capNhat(ma);
@@ -250,42 +264,38 @@ GoiInternet::inTieuDeBang();
             return;
         }
         if (goiDangDuocThamChieu(ma)) {
-            std::cout << " -> Canh bao: Goi '" << ma
-                << "' dang duoc su dung trong Hop dong thue bao. Khong the xoa!\n";
+            std::cout << " -> Canh bao: Goi '" << ma << "' dang duoc su dung trong Hop dong!\n";
             return;
         }
         GoiInternet::inTieuDeBang();
         goi->hienThiThongTin();
         if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa goi nay?")) {
             ql.xoaTheoMa(ma);
-        }
-        else {
+        } else {
             std::cout << " -> Da huy thao tac xoa.\n";
         }
     }
 
-    // Nhận tham số ql từ hàm main.cpp truyền vào
-    inline void chayMenu(QuanLyLuuTru<GoiInternet>& ql) {
-        try { std::filesystem::create_directories("data"); }
-        catch (...) {}
-        ql.docTuFile(); // Đồng bộ dữ liệu mới nhất
+    inline void chayMenu() {
+        try { std::filesystem::create_directories("data"); } catch (...) {}
+        QuanLyLuuTru<GoiInternet> ql(FILE_GOI_INTERNET);
         while (true) {
             std::cout << "\n===== UC01 - QUAN LY GOI INTERNET =====\n"
-                << "1. Them goi\n"
-                << "2. Hien thi danh sach\n"
-                << "3. Tim kiem theo ma\n"
-                << "4. Sua thong tin\n"
-                << "5. Xoa goi\n"
-                << "0. Quay lai\n";
+                      << "1. Them goi\n"
+                      << "2. Hien thi danh sach\n"
+                      << "3. Tim kiem theo ma\n"
+                      << "4. Sua thong tin\n"
+                      << "5. Xoa goi\n"
+                      << "0. Quay lai\n";
             int chon = NhapDuLieu::nhapSoNguyenDuong("Chon chuc nang: ");
             switch (chon) {
-            case 1: themGoi(ql); break;
-            case 2: hienThiDanhSach(ql); break;
-            case 3: timKiemGoi(ql); break;
-            case 4: suaGoi(ql); break;
-            case 5: xoaGoi(ql); break;
-            case 0: return;
-            default: std::cout << " -> Loi: Lua chon khong hop le!\n";
+                case 1: themGoi(ql); break;
+                case 2: hienThiDanhSach(ql); break;
+                case 3: timKiemGoi(ql); break;
+                case 4: suaGoi(ql); break;
+                case 5: xoaGoi(ql); break;
+                case 0: return;
+                default: std::cout << " -> Loi: Lua chon khong hop le!\n";
             }
         }
     }
@@ -293,17 +303,13 @@ GoiInternet::inTieuDeBang();
 
 #endif
 
-  
-  
 
 
- 
-      
 
-   
+    
 
-
-       
+    
+     
 
               
       
