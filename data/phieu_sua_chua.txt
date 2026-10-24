@@ -1,14 +1,14 @@
 # data/phieu_sua_chua.txt
 # MaPhieuSC|MaHopDong|MaKhachHang|MaNhanVien|NgayBaoSua|NgayHoanThanh|MoTaLoi|KetQuaXuLy|TrangThai
-PSC01|HD001|KH001|NV001|10/03/2026|11/03/2026|Mat ket noi internet dot ngot|Khoi dong lai thiet bi ONT va kiem tra lai quang|Hoan thanh
-PSC02|HD002|KH002|NV002|15/02/2026|16/02/2026|Toc do mang cham hon cam kết|Cau hinh lai bang thong va toi uu goi cuoc|Hoan thanh
-PSC03|HD003|KH003|NV003|05/01/2026|06/01/2026|Loi den LOS tren thiet bi ONT nhap nhay do|Han lai dau quang va kiem tra suy hao|Hoan thanh
-PSC04|HD004|KH004|NV004|01/04/2026|02/04/2026|Khong truy cap duoc cac trang quoc te|Doi lai DNS va kiem tra duong truyen chinh|Hoan thanh
-PSC05|HD005|KH005|NV005|08/12/2025|09/12/2025|Modem bi treo, mat ket noi wifi phat ra|Reset cung va nap lai firmware moi cho thiet bi|Hoan thanh
-PSC06|HD006|KH006|NV006|14/01/2026|15/01/2026|Day cap quang bi dut do thi cong ngoai troi|Noi lai tuyen cap quang va boc lai hop phoi cap|Hoan thanh
-PSC07|HD007|KH007|NV007|25/02/2026|26/02/2026|Loi ket noi cong OLT tai tram tong dai|Chuyen sang cong OLT du phong va kiem tra port|Hoan thanh
-PSC08|HD008|KH008|NV008|18/02/2026|19/02/2026|Wifi yeu o khu vuc tang 2 cua toa nha|Bo sung them bo phat wifi phu (Access Point)|Hoan thanh
-PSC09|HD009|KH009|NV009|10/03/2026|11/03/2026|Thiet bi adapter nguon bi chay do se set|Thay the adapter nguon moi cho modem khach hang|Hoan thanh
-PSC10|HD010|KH010|NV010|02/01/2026|03/01/2026|Khong ping duong gateway cua nha mang|Kiem tra lai VLAN va cau hinh lai thiet bi|Hoan thanh
-PSC11|HD011|KH011|NV011|05/04/2026|06/04/2026|Duong truyen chap chon vao gio cao diem|Kiem tra tin hieu quang va bao cao nang cap port|Dang xu ly
-PSC12|HD012|KH012|NV012|15/03/2026|16/03/2026|Mat tin hieu hoan toan tu hop cap tong|Kiem tra ket noi tu hop cap den nha khach hang|Tiep nhan
+PSC01|HDO001|KH001|NV001|10/03/2026|11/03/2026|Mat ket noi internet dot ngot|Khoi dong lai thiet bi ONT va kiem tra lai quang|Hoan thanh
+PSC02|HDO002|KH002|NV002|15/02/2026|16/02/2026|Toc do mang cham hon cam kết|Cau hinh lai bang thong va toi uu goi cuoc|Hoan thanh
+PSC03|HDO003|KH003|NV003|05/01/2026|06/01/2026|Loi den LOS tren thiet bi ONT nhap nhay do|Han lai dau quang va kiem tra suy hao|Hoan thanh
+PSC04|HDO004|KH004|NV004|01/04/2026|02/04/2026|Khong truy cap duoc cac trang quoc te|Doi lai DNS va kiem tra duong truyen chinh|Hoan thanh
+PSC05|HDO005|KH005|NV005|08/12/2025|09/12/2025|Modem bi treo, mat ket noi wifi phat ra|Reset cung va nap lai firmware moi cho thiet bi|Hoan thanh
+PSC06|HDO006|KH006|NV006|14/01/2026|15/01/2026|Day cap quang bi dut do thi cong ngoai troi|Noi lai tuyen cap quang va boc lai hop phoi cap|Hoan thanh
+PSC07|HDO007|KH007|NV007|25/02/2026|26/02/2026|Loi ket noi cong OLT tai tram tong dai|Chuyen sang cong OLT du phong va kiem tra port|Hoan thanh
+PSC08|HDO008|KH008|NV008|18/02/2026|19/02/2026|Wifi yeu o khu vuc tang 2 cua toa nha|Bo sung them bo phat wifi phu (Access Point)|Hoan thanh
+PSC09|HDO009|KH009|NV009|10/03/2026|11/03/2026|Thiet bi adapter nguon bi chay do se set|Thay the adapter nguon moi cho modem khach hang|Hoan thanh
+PSC10|HDO010|KH010|NV010|02/01/2026|03/01/2026|Khong ping duong gateway cua nha mang|Kiem tra lai VLAN va cau hinh lai thiet bi|Hoan thanh
+PSC11|HDO011|KH011|NV011|05/04/2026|06/04/2026|Duong truyen chap chon vao gio cao diem|Kiem tra tin hieu quang va bao cao nang cap port|Dang xu ly
+PSC12|HDO012|KH012|NV012|15/03/2026|16/03/2026|Mat tin hieu hoan toan tu hop cap tong|Kiem tra ket noi tu hop cap den nha khach hang|Tiep nhan
