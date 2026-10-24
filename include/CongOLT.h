@@ -162,18 +162,17 @@ private:
             << "3. Hong\n";
 
         std::string s = NhapDuLieu::nhapChuoiHoacGiuNguyen(thongBaoChon, "");
-        if (s.empty() && choPhepBoTrong) return false;
+        if (s.empty()) {
+            if (choPhepBoTrong) return false; // bo trong = giu nguyen
+            std::cout << " -> Loi: Lua chon khong hop le!\n";
+            return nhapTrangThai(choPhepBoTrong);
+        }
         if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
 
         int chon = 0;
-        try {
-            chon = std::stoi(s);
-        }
-        catch (...) {
-            chon = 0;
-        }
+        try { chon = chuyenSoCong(s); }     // parse nghiem ngat, khong nhan "2abc"
+        catch (const std::invalid_argument&) { chon = 0; }
 
-        if (choPhepBoTrong && chon == 0) return false;
         if (chon == 1) { setTrangThai("Trong"); return true; }
         if (chon == 3) { setTrangThai("Hong");  return true; }
 
@@ -211,7 +210,7 @@ public:
             << std::setw(14) << "Khu vuc" << " | "
             << std::setw(10) << "Ma KH" << " | "
             << std::setw(14) << "Trang thai" << '\n'
-            << std::string(98, '-') << '\n';
+            << std::string(102, '-') << '\n';
     }
 
     void setTenOLT(const std::string& ten) {
@@ -314,13 +313,7 @@ public:
 
     void capNhatThongTin() override {
         capNhatTruong("Nhap ten OLT moi", [&](const std::string& s) { setTenOLT(s); });
-
-        std::string sSo = NhapDuLieu::nhapChuoiHoacGiuNguyen("Nhap so cong moi (bo trong de giu nguyen, hoac 'HUY'): ", "");
-        if (sSo == "HUY" || sSo == "huy") throw std::invalid_argument("HUY");
-        if (!sSo.empty()) {
-            setSoCong(chuyenSoCong(sSo));
-        }
-
+        capNhatTruong("Nhap so cong moi", [&](const std::string& s) { setSoCong(chuyenSoCong(s)); });
         capNhatTruong("Nhap khu vuc moi", [&](const std::string& s) { setKhuVuc(s); });
         capNhatTruong("Nhap ma tuyen cap moi", [&](const std::string& s) { setMaTuyenCap(s); });
 
