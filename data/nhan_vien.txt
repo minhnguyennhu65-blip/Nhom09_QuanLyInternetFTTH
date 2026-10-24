@@ -1,10 +1,14 @@
-NV001|Nguyen Duc Huy|CHUA_CAP_NHAT|Lap dat Internet|Ha Phong|Dang lam
-NV002|Nguyen Nhu Minh|CHUA_CAP_NHAT|Sua chua modem|Cam Pha|Dang lam
-NV003|Hoang Trong Khoa|CHUA_CAP_NHAT|Bao tri thiet bi|Uong Bi|Dang lam
-NV004|Tran Ngoc Huy|CHUA_CAP_NHAT|Xu ly su co mang|Ha Long|Dang lam
-NV005|Dinh Van Truong|CHUA_CAP_NHAT|Lap dat cap quang|Mong Cai|Dang lam
-NV006|Pham Quang Anh|CHUA_CAP_NHAT|Kiem tra duong truyen|Ha Phong|Dang lam
-NV007|Vu Thi Lan|CHUA_CAP_NHAT|Ho tro khach hang|Ha Long|Dang lam
-NV008|Bui Minh Tuan|CHUA_CAP_NHAT|Cau hinh router|Cam Pha|Dang lam
-NV009|Do Thanh Nam|CHUA_CAP_NHAT|Bao tri cap quang|Uong Bi|Dang lam
-NV010|Le Hoang Phuc|CHUA_CAP_NHAT|Xu ly su co Internet|Mong Cai|Dang lam
+# data/nhan_vien_ky_thuat.txt
+# MaNV|HoTen|SoDienThoai|ChuyenMon|KhuVucPhuTrach|TrangThai
+NV001|Nguyen Van Hai|0912345678|Cap quang GPON|Quan Cau Giay|Dang lam
+NV002|Tran Van Minh|0987654321|Ha thнг OLT|Quan Ba Dinh|Dang lam
+NV003|Le Hoang Duc|0903123456|Xu ly su co mang|Quan Thanh Xuan|Dang lam
+NV004|Pham Tuan Anh|0934567890|Lap dat thiet bi|Huyen Gia Lam|Dang lam
+NV005|Hoang Van Nam|0978123456|Bao duong tuyen cap|Quan Hoang Mai|Nghi
+NV006|Vu Ngoc Son|0962345678|Cau truc ha tang|Quan Ha Dong|Dang lam
+NV007|Bao Quoc Huy|0918889999|Kythuat vien tong dai|Quan Hai Ba Trung|Dang lam
+NV008|Ngo Duc Thang|0945678123|Cau noi quang|Quan Dong Da|Dang lam
+NV009|Dang Tuan Kiet|0923456789|Bao tri thiet bi|Huyen Soc Son|Dang lam
+NV010|Do Van Thien|0981112233|Xu ly su co FTTH|Quan Long Bien|Nghi
+NV011|Bui Xuan Truong|0915556677|Cau truc mang LAN|Quan Nam Tu Liem|Dang lam
+NV012|Phan Thanh Dat|0932223344|Van hanh OLT|Quan Bac Tu Liem|Dang lam
