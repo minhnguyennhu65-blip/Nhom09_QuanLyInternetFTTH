@@ -1,14 +1,14 @@
-# data/goi_internet.txt
-# MaGoi|TenGoi|TocDo(Mbps)|GiaThang(VND)|ThoiHanSuDung|MoTa|TrangThai
-GOI01|Eco 150|150|220000|12 thang|Goi cuoc tieu chuan cho ho gia dinh nho|Dang hoat dong
-GOI02|Super 250|250|350000|12 thang|Goi cuoc toc do cao phuc vu giai tri va lam viec|Dang hoat dong
-GOI03|Business 500|500|880000|24 thang|Goi cuoc chuyen dung cho doanh nghiep vua va nho|Dang hoat dong
-GOI04|Enterprise 1Gbps|1000|1500000|24 thang|Goi cuoc bang thong cuc lon cho tap đoan va quan Net|Dang hoat dong
-GOI05|Basic 80|80|165000|6 thang|Goi cuoc tiet kiem cho sinh vien va nguoi doc than|Ngung
-GOI06|Fiber Home|200|290000|12 thang|Goi cuoc gia dinh kem truyen hinh so|Dang hoat dong
-GOI07|Giga Plus|300|420000|12 thang|Goi cuoc toi uu hoa choi game va livestream|Dang hoat dong
-GOI08|Pro 600|600|1100000|24 thang|Goi cuoc toc do cao cho cong ty cong nghe|Dang hoat dong
-GOI09|Starter 50|50|150000|6 thang|Goi cuoc co ban gia re|Ngung
-GOI10|Ultra 400|400|650000|12 thang|Goi cuoc pho thong cho ho kinh doanh lon|Dang hoat dong
-GOI11|Mega Speed|800|1250000|24 thang|Goi cuoc sieu toc do doanh nghiep|Dang hoat dong
-GOI12|Family Net|180|250000|12 thang|Goi cuoc luot web muot ma cho ca nha|Dang hoat dong
+# data/tuyen_cap.txt
+# MaTuyen|TenTuyen|KhuVuc|LoaiKhuVuc|ChieuDaiTuyenCap|LoaiCap|DiemDau|DiemCuoi|TrangThai
+TC001|Tuyen cap truc chinh Ha Noi 1|Quan Cau Giay|thanh thi|12.50|Quang Single-mode|Tram OLT Cau Giay|Tu dien so 15|Hoat dong
+TC002|Tuyen cap lien tinh HN-HP|Huyen Gia Lam|nong thon|45.20|Quang Multi-mode|Tram BTS Gia Lam|Tram trung chuyen HP|Hoat dong
+TC003|Tuyen cap vung cao Sa Pa|Huyen Sa Pa|vung nui|28.75|Quang chong nhieu|Tram BTS trung tam|Tram thu phat 04|Bao tri
+TC004|Tuyen cap noi do Ho Chi Minh|Quan 1|thanh thi|8.30|Quang Single-mode|Tong dai Ben Thanh|Tu cap Khu A|Hoat dong
+TC005|Tuyen cap ngoai thanh Da Nang|Huyen Hoa Vang|nong thon|19.40|Quang thuong|Tram Hoa Vang|Tram Lien Chieu|Hoat dong
+TC006|Tuyen cap vung nui Ha Giang|Huyen Meo Vac|vung nui|35.60|Quang gia cường thép|Tram Meo Vac|Tram Dong Van|Bao tri
+TC007|Tuyen cap khu cong nghiep Bac Ninh|Khu CN Que Vo|thanh thi|15.00|Quang Single-mode|Tram Que Vo 1|Nha may Samsung|Hoat dong
+TC008|Tuyen cap vung bien Hai Phong|Huyen Cat Hai|nong thon|22.10|Quang chong tham|Tram Cat Ba|Tram Cat Hai|Hoat dong
+TC009|Tuyen cap khu vực Tay Bac|Tinh Lai Chau|vung nui|52.80|Quang dac chung|Tram Lai Chau|Tram Muong Te|Bao tri
+TC010|Tuyen cap noi thi Nam Dinh|Thanh pho Nam Dinh|thanh thi|10.20|Quang Single-mode|Tram Nam Dinh|Tu cap So 3|Hoat dong
+TC011|Tuyen cap vung nui Lao Cai|Huyen Bat Xat|vung nui|31.50|Quang gia cuong|Tram Bat Xat|Tram Y Ty|Hoat dong
+TC012|Tuyen cap trung tam Hai Duong|Thanh pho Hai Duong|thanh thi|9.75|Quang Standard|Tram Hai Duong|Tu cap So 8|Hoat dong
