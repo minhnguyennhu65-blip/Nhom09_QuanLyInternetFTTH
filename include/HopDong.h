@@ -1,265 +1,354 @@
 /* =======================================================
- * Tên tác giả: Đinh Văn Trường
- * Mô tả file: Chương trình chính (main.cpp) tổng hợp toàn bộ
- * ======================================================= */
+- Tên tác giả: Hoàng Trọng Khoa
+- Mã sinh viên: B24DCVT204
+- Mô tả file: Lớp quản lý Hợp Đồng Thuê Bao
+- ======================================================= */
 
-#define _CRT_SECURE_NO_WARNINGS
-
-#include <iostream>
-#include <string>
-#include <vector>
-#include <limits>
-#include <sstream>
+#ifndef HOP_DONG_H
+#define HOP_DONG_H
 
 #include "LopCoSo.h"
 #include "NhapDuLieu.h"
 #include "QuanLyLuuTru.h"
-#include "GoiInternet.h"
-#include "TuyenCap.h"
 #include "KhachHang.h"
-#include "NhanVienKyThuat.h"
-#include "HopDong.h"
-#include "ThietBi.h"
-#include "CongOLT.h"
-#include "PhieuLapDat.h"
-#include "PhieuSuaChua.h"
-#include "HoaDonCuoc.h"
 
-// Hàm nhập số nguyên chuẩn xác, chặn tuyệt đối trường hợp gõ ký tự lạ kèm số (vd: 8vshjkdj)
-int nhapSoTrongKhoang(int minVal, int maxVal, const std::string& thongBao) {
-    std::string line;
-    while (true) {
-        std::cout << thongBao;
-        if (std::getline(std::cin, line)) {
-            if (line.empty()) {
-                std::cout << " -> Loi: Khong duoc de trong! Vui long nhap lai.\n";
-                continue;
-            }
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
-            std::stringstream ss(line);
-            int giaTri;
-            char extra;
+class HopDong : public LopCoSo {
+private:
+    std::string maKhachHang;  // Khóa ngoại tới Khách hàng
+    std::string maGoiCuoc;    // Khóa ngoại tới Gói cước
+    std::string maThietBi;    // Khóa ngoại tới Thiết bị
+    std::string ngayKy;       // DD/MM/YYYY, không sau ngày hiện tại
+    std::string ngayHetHan;   // DD/MM/YYYY, không trước ngày ký
+    double giaThieuDung = 0.0;
+    std::string trangThai = "Hoat dong"; // "Hoat dong", "Het han", "Huy"
+    std::string loaiKhachHang;           // Lấy tự động từ Khách hàng (Ca nhan / Doanh nghiep)
 
-            if (ss >> giaTri && !(ss >> extra)) {
-                if (giaTri >= minVal && giaTri <= maxVal) {
-                    return giaTri;
-                }
-            }
-        }
-        std::cout << " -> Loi: Vui long chi nhap so nguyen tu " << minVal << " den " << maxVal << "!\n";
+    // Các cơ sở dữ liệu / hàm kiểm tra khóa ngoại (gắn từ main)
+    inline static QuanLyLuuTru<KhachHang>* dbKhachHang = nullptr;
+    inline static std::function<bool(const std::string&)> kiemTraGoiCuoc = nullptr;
+    inline static std::function<bool(const std::string&)> kiemTraThietBi = nullptr;
+    inline static std::function<bool(const std::string&)> kiemTraMaTonTai = nullptr;
+
+    // ---------- Hàm kiểm tra / tiện ích nội bộ ----------
+
+    static bool hopLeTrangThai(const std::string& tt) {
+        return tt == "Hoat dong" || tt == "Het han" || tt == "Huy";
     }
-}
 
-void hienThiMenuTong() {
-    std::cout << "\n=========================================================\n";
-    std::cout << "         HE THONG QUAN LY THUE BAO & HA TANG VIEN THONG   \n";
-    std::cout << "=========================================================\n";
-    std::cout << " 1. Quan ly Goi cuoc Internet (UC01 - Tran Ngoc Huy)\n";
-    std::cout << " 2. Quan ly Tuyen cap / Khu vuc (UC02 - Tran Ngoc Huy)\n";
-    std::cout << " 3. Quan ly Khach hang (UC03 - Hoang Trong Khoa)\n";
-    std::cout << " 4. Quan ly Hop dong thue bao (UC04 - Hoang Trong Khoa)\n";
-    std::cout << " 5. Quan ly Thiet bi ONT/Modem (UC05 - Nguyen Nhu Minh)\n";
-    std::cout << " 6. Quan ly Cong OLT (UC06 - Nguyen Nhu Minh)\n";
-    std::cout << " 7. Quan ly Phieu lap dat (UC07 - Dinh Van Truong)\n";
-    std::cout << " 8. Quan ly Phieu sua chua (UC08 - Dinh Van Truong)\n";
-    std::cout << " 9. Quan ly Hoa don cuoc (UC09 - Nguyen Duc Huy)\n";
-    std::cout << " 10. Quan ly Nhan vien ky thuat (UC10 - Nguyen Duc Huy)\n";
-    std::cout << " 11. Thong ke va Xem tong hop du lieu he thong\n";
-    std::cout << " 0. Thoat chuong trinh\n";
-    std::cout << "=========================================================\n";
-}
+    static bool hopLeLoaiKH(const std::string& l) {
+        return l == "Ca nhan" || l == "Doanh nghiep";
+    }
 
-template <typename T>
-void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
-    int chon;
-    do {
-        std::cout << "\n--- QUAN LY " << tenPhanHe << " ---\n";
-        std::cout << "1. Hien thi danh sach\n";
-        std::cout << "2. Them moi doi tuong\n";
-        std::cout << "3. Tim kiem theo ma\n";
-        std::cout << "4. Cap nhat thong tin theo ma\n";
-        std::cout << "5. Xoa theo ma\n";
-        std::cout << "6. Luu du lieu vao file\n";
-        std::cout << "0. Quay lai menu chinh\n";
-
-        chon = nhapSoTrongKhoang(0, 6, "Chon chuc nang (0-6): ");
-        std::cout << "\n";
-
-        switch (chon) {
-        case 1: {
-            // Tự động kiểm tra và in tiêu đề bảng nếu lớp T có hỗ trợ hàm inTieuDe()
-            if constexpr (requires { T::inTieuDe(); }) {
-                ql.hienThi([ ] () { T::inTieuDe(); });
-            }
-            else {
-                ql.hienThi();
-            }
-            break;
+    // Chuẩn hóa mã: chỉ chữ cái không dấu, số, '_' hoặc '-'; viết hoa
+static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
+        if (ma.empty())
+            throw std::invalid_argument(ten + " khong duoc rong!");
+        std::string kq = ma;
+        for (char& c : kq) {
+            unsigned char uc = static_cast<unsigned char>(c);
+            if (!(std::isalnum(uc) && uc < 128) && c != '_' && c != '-')
+                throw std::invalid_argument(
+                    ten + " chi gom chu cai khong dau, chu so, '_' hoac '-'!");
+            c = static_cast<char>(std::toupper(uc));
         }
-        case 2: {
-            T obj;
-            try {
-                obj.nhapThongTin(); // Lệnh này giờ có thể ném ra lỗi
+        return kq;
+    }
 
-                if (obj.getMaDinhDanh().empty()) {
-                    std::cout << " -> Thao tac da duoc huy, khong them vao danh sach.\n";
-                }
-                else {
-                    ql.themMoi(obj);
-                    std::cout << " -> Them moi thanh cong!\n"; // Bổ sung thông báo thành công
-                }
-            } 
+    // Tách theo '|', giữ lại cả trường rỗng ở giữa và cuối
+    static std::vector<std::string> tachTruong(const std::string& s) {
+        std::vector<std::string> kq;
+        std::size_t dau = 0;
+        while (true) {
+            std::size_t p = s.find('|', dau);
+            if (p == std::string::npos) {
+                kq.push_back(s.substr(dau));
+                break;
+            }
+            kq.push_back(s.substr(dau, p - dau));
+            dau = p + 1;
+        }
+        return kq;
+    }
+
+    // Chuỗi -> số thực không âm; toàn bộ chuỗi phải là số, từ chối nan/inf/hex
+    static double phanTichGia(const std::string& s) {
+        if (!s.empty() && s.find_first_not_of("0123456789.eE+-") == std::string::npos) {
+            char* ketThuc = nullptr;
+            double v = std::strtod(s.c_str(), &ketThuc);
+            if (*ketThuc == '\0' && std::isfinite(v) && v >= 0.0) return v;
+        }
+        throw std::invalid_argument("Gia thue dung phai la so thuc >= 0!");
+    }
+
+    static std::string cat(const std::string& s, std::size_t n) {
+        return s.size() <= n ? s : s.substr(0, n - 2) + "..";
+    }
+
+    // Đọc một dòng bắt buộc; 'HUY' -> ném invalid_argument("HUY") để hủy cả thao tác
+    static std::string docHoacHuy(const std::string& thongBao) {
+        std::string s = NhapDuLieu::nhapChuoi(thongBao + " (hoac nhap 'HUY'): ");
+        if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
+        return s;
+    }
+
+    // Đọc một dòng tùy chọn: trả về "" nếu bỏ trống (giữ nguyên); 'HUY' như trên
+    static std::string docTuyChon(const std::string& thongBao) {
+        std::string s = NhapDuLieu::nhapChuoiHoacGiuNguyen(
+            thongBao + " (bo trong de giu nguyen, hoac nhap 'HUY'): ", "");
+        if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
+        return s;
+    }
+
+    // Lặp lại cho đến khi setter không ném ngoại lệ; 'HUY' được ném tiếp ra ngoài
+    template <typename F>
+    static void lap(F thucHien) {
+        while (true) {
+            try { thucHien(); return; }
             catch (const std::invalid_argument& e) {
-                // In chính xác câu lỗi bạn viết trong throw ra màn hình
-                std::cout << "\n -> [LOI NHAP DU LIEU]: " << e.what() << "\n";
-                std::cout << " -> DA HUY THAO TAC THEM MOI!\n";
+                if (std::string(e.what()) == "HUY") throw;
+                std::cout << " -> Loi: " << e.what() << '\n';
             }
-            break;
         }
-        case 3: {
-            std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma dinh danh can tim: ");
-            T* p = ql.timTheoMa(ma);
-            if (p != nullptr) {
-                std::cout << " -> Tim thay:\n";
-                p->hienThiThongTin();
-            }
-            else {
-                std::cout << " -> Khong tim thay doi tuong co ma: " << ma << "\n";
-            }
-            break;
-        }
-        case 4: {
-            std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma dinh danh can cap nhat: ");
-            ql.capNhat(ma);
-            break;
-        }
-        case 5: {
-            std::string ma = NhapDuLieu::nhapMaDinhDanh("Nhap ma dinh danh can xoa: ");
-            if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa doi tuong nay?")) {
-                ql.xoaTheoMa(ma);
-            }
-            else {
-                std::cout << " -> Da huy thao tac xoa.\n";
-            }
-            break;
-        }
-        case 6: {
-            if (ql.luuVaoFile()) {
-                std::cout << " -> Luu file thanh cong!\n";
-            }
-            else {
-                std::cout << " -> Loi khi ghi file!\n";
-            }
-            break;
-        }
-        case 0:
-            return;
-        }
-
-        if (chon != 0) {
-            std::cout << "\nNhan Enter de tiep tuc...";
-            std::string dummy;
-            std::getline(std::cin, dummy);
-        }
-    } while (chon != 0);
-}
-
-int main() {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
-
-    try {
-        QuanLyLuuTru<GoiInternet>      qlGoiInternet("data/goi_internet.txt");
-        qlGoiInternet.docTuFile();
-
-        QuanLyLuuTru<TuyenCap>         qlTuyenCap("data/tuyen_cap.txt");
-        qlTuyenCap.docTuFile();
-
-        QuanLyLuuTru<KhachHang>        qlKhachHang("data/khach_hang.txt");
-        qlKhachHang.docTuFile();
-
-        QuanLyLuuTru<HopDong>          qlHopDong("data/hop_dong.txt");
-        qlHopDong.docTuFile();
-
-        QuanLyLuuTru<ThietBi>          qlThietBi("data/thiet_bi.txt");
-        qlThietBi.docTuFile();
-
-        QuanLyLuuTru<CongOLT>          qlOLT("data/cong_olt.txt");
-        qlOLT.docTuFile();
-
-        QuanLyLuuTru<PhieuLapDat>      qlLapDat("data/phieu_lap_dat.txt");
-        qlLapDat.docTuFile();
-
-        QuanLyLuuTru<PhieuSuaChua>     qlSuaChua("data/phieu_sua_chua.txt");
-        qlSuaChua.docTuFile();
-
-        QuanLyLuuTru<HoaDonCuoc>       qlHoaDon("data/hoa_don_cuoc.txt");
-        qlHoaDon.docTuFile();
-
-        QuanLyLuuTru<NhanVienKyThuat>  qlNhanVien("data/nhan_vien.txt");
-        qlNhanVien.docTuFile();
-
-        // Gắn kết nối kiểm tra khóa ngoại cho CongOLT
-        CongOLT::setDBKhachHang(&qlKhachHang);
-        CongOLT::setKiemTraTuyenCap([&](const std::string& ma) {
-            return qlTuyenCap.timTheoMa(ma) != nullptr;
-        });
-
-        // Gắn kết nối kiểm tra khóa ngoại cho ThietBi (kiểm tra mã Hợp đồng HDO)
-        ThietBi::setKiemTraHopDong([&](const std::string& ma) {
-            return qlHopDong.timTheoMa(ma) != nullptr;
-        });
-
-        int luaChon;
-        do {
-            hienThiMenuTong();
-            luaChon = nhapSoTrongKhoang(0, 11, "Nhap lua chon cua ban (0-11): ");
-            std::cout << "\n";
-
-            switch (luaChon) {
-            case 1: menuCRUD(qlGoiInternet, "GOI INTERNET (UC01 - Tran Ngoc Huy)"); break;
-            case 2: menuCRUD(qlTuyenCap, "TUYEN CAP (UC02 - Tran Ngoc Huy)"); break;
-            case 3: menuCRUD(qlKhachHang, "KHACH HANG (UC03 - Hoang Trong Khoa)"); break;
-            case 4: menuCRUD(qlHopDong, "HOP DONG THUE BAO (UC04 - Hoang Trong Khoa)"); break;
-            case 5: menuCRUD(qlThietBi, "THIET BI ONT/MODEM (UC05 - Nguyen Nhu Minh)"); break;
-            case 6: menuCRUD(qlOLT, "CONG OLT (UC06 - Nguyen Nhu Minh)"); break;
-            case 7: menuCRUD(qlLapDat, "PHIEU LAP DAT (UC07 - Dinh Van Truong)"); break;
-            case 8: menuCRUD(qlSuaChua, "PHIEU SUA CHUA (UC08 - Dinh Van Truong)"); break;
-            case 9: menuCRUD(qlHoaDon, "HOA DON CUOC (UC09 - Nguyen Duc Huy)"); break;
-            case 10: menuCRUD(qlNhanVien, "NHAN VIEN KY THUAT (UC10 - Nguyen Duc Huy)"); break;
-            case 11: {
-                std::cout << "--- THONG KE TONG HOP DU LIEU ---\n";
-                std::cout << " - Tong so Goi cuoc: " << qlGoiInternet.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Tuyen cap: " << qlTuyenCap.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Khach hang: " << qlKhachHang.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Hop dong: " << qlHopDong.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Thiet bi: " << qlThietBi.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Cong OLT: " << qlOLT.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Phieu lap dat: " << qlLapDat.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Phieu sua chua: " << qlSuaChua.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Hoa don: " << qlHoaDon.getDanhSach().size() << "\n";
-                std::cout << " - Tong so Nhan vien: " << qlNhanVien.getDanhSach().size() << "\n";
-                break;
-            }
-            case 0: {
-                std::cout << " -> Cam on ban da su dung chuong trinh. Tam biet!\n";
-                break;
-            }
-            }
-
-            if (luaChon != 0) {
-                std::cout << "\nNhan Enter de tiep tuc...";
-                std::string dummy;
-                std::getline(std::cin, dummy);
-            }
-
-        } while (luaChon != 0);
-
-    } 
-    catch (const std::exception& e) {
-        std::cerr << "\n -> Loi he thong (Exception): " << e.what() << "\n";
-        std::cerr << " -> Chuong trinh buoc phai thoat an toan.\n";
     }
 
-    return 0;
-}
+    // Chọn trạng thái bằng số 1-3; giu = true thì bỏ trống = giữ nguyên
+void chonTrangThai(bool giu) {
+        std::string s = giu
+            ? docTuyChon("Chon trang thai (1-3, hien tai: " + trangThai + ")")
+            : docHoacHuy("Chon trang thai (1-3)");
+        if (s.empty()) return;
+        char* ketThuc = nullptr;
+        long v = std::strtol(s.c_str(), &ketThuc, 10);
+        if (*ketThuc != '\0' || v < 1 || v > 3)
+            throw std::invalid_argument("Lua chon khong hop le (1-3)!");
+        setTrangThai(v == 1 ? "Hoat dong" : v == 2 ? "Het han" : "Huy");
+    }
+
+public:
+    HopDong() = default;
+
+    // ---------- Gắn khóa ngoại ----------
+    static void setDBKhachHang(QuanLyLuuTru<KhachHang>* db) { dbKhachHang = db; }
+    static void setKiemTraGoiCuoc(std::function<bool(const std::string&)> f) { kiemTraGoiCuoc = std::move(f); }
+    static void setKiemTraThietBi(std::function<bool(const std::string&)> f) { kiemTraThietBi = std::move(f); }
+    static void setKiemTraMaTonTai(std::function<bool(const std::string&)> f) { kiemTraMaTonTai = std::move(f); }
+
+    // In tiêu đề bảng chuẩn có dấu phân cách ' | '
+    static void inTieuDe() {
+        std::cout << std::left
+            << std::setw(8)  << "Ma HD"      << " | "
+            << std::setw(8)  << "Ma KH"      << " | "
+            << std::setw(8)  << "Ma Goi"     << " | "
+            << std::setw(8)  << "Ma TB"      << " | "
+            << std::setw(11) << "Ngay ky"    << " | "
+            << std::setw(11) << "Ngay het"   << " | "
+            << std::setw(13) << "Gia (VND)"  << " | "
+            << std::setw(13) << "Loai KH"    << " | "
+            << std::setw(11) << "Trang thai" << "\n"
+            << std::string(115, '-') << "\n";
+    }
+
+    // ---------- Getters ----------
+    std::string getMaHopDong() const { return maDinhDanh; }
+    const std::string& getMaKhachHang() const { return maKhachHang; }
+    const std::string& getMaGoiCuoc() const { return maGoiCuoc; }
+    const std::string& getMaThietBi() const { return maThietBi; }
+    const std::string& getNgayKy() const { return ngayKy; }
+    const std::string& getNgayHetHan() const { return ngayHetHan; }
+    double getGiaThieuDung() const { return giaThieuDung; }
+    const std::string& getTrangThai() const { return trangThai; }
+    const std::string& getLoaiKhachHang() const { return loaiKhachHang; }
+
+    // ---------- Setters có kiểm tra hợp lệ (ném invalid_argument) ----------
+
+    // Đặt khách hàng; loại khách hàng được lấy tự động từ dữ liệu Khách hàng
+    void setMaKhachHang(const std::string& ma) {
+        std::string chuan = chuanHoaMa(ma, "Ma khach hang");
+        if (dbKhachHang == nullptr)
+            throw std::invalid_argument("Chua gan co so du lieu khach hang (HopDong::setDBKhachHang)!");
+        const KhachHang* kh = dbKhachHang->timTheoMa(chuan);
+        if (kh == nullptr)
+            throw std::invalid_argument("Khach hang [" + chuan + "] khong ton tai!");
+        maKhachHang = chuan;
+loaiKhachHang = kh->getLoaiKhachHang();
+    }
+
+    void setMaGoiCuoc(const std::string& ma) {
+        std::string chuan = chuanHoaMa(ma, "Ma goi cuoc");
+        if (kiemTraGoiCuoc && !kiemTraGoiCuoc(chuan))
+            throw std::invalid_argument("Goi cuoc [" + chuan + "] khong ton tai!");
+        maGoiCuoc = chuan;
+    }
+
+    void setMaThietBi(const std::string& ma) {
+        std::string chuan = chuanHoaMa(ma, "Ma thiet bi");
+        if (kiemTraThietBi && !kiemTraThietBi(chuan))
+            throw std::invalid_argument("Thiet bi [" + chuan + "] khong ton tai!");
+        maThietBi = chuan;
+    }
+
+    // Ngày ký và ngày hết hạn phụ thuộc nhau nên đặt cùng một chỗ
+    void setThoiHan(const std::string& ky, const std::string& hetHan) {
+        if (!NhapDuLieu::laNgayThangHopLe(ky))
+            throw std::invalid_argument(
+                "Ngay ky khong hop le! Dung dinh dang DD/MM/YYYY (VD: 15/03/2026).");
+        if (NhapDuLieu::soSanhNgay(ky, NhapDuLieu::ngayHienTai()) > 0)
+            throw std::invalid_argument(
+                "Ngay ky khong duoc sau ngay hien tai (" + NhapDuLieu::ngayHienTai() + ")!");
+        if (!NhapDuLieu::laNgayThangHopLe(hetHan))
+            throw std::invalid_argument(
+                "Ngay het han khong hop le! Dung dinh dang DD/MM/YYYY (VD: 15/03/2026).");
+        if (NhapDuLieu::soSanhNgay(hetHan, ky) < 0)
+            throw std::invalid_argument("Ngay het han khong duoc truoc ngay ky!");
+        ngayKy = ky;
+        ngayHetHan = hetHan;
+    }
+
+    void setGiaThieuDung(double gia) {
+        if (!std::isfinite(gia) || gia < 0.0)
+            throw std::invalid_argument("Gia thue dung phai la so thuc >= 0!");
+        giaThieuDung = gia;
+    }
+
+    void setTrangThai(const std::string& tt) {
+        if (!hopLeTrangThai(tt))
+            throw std::invalid_argument("Trang thai chi duoc la 'Hoat dong', 'Het han' hoac 'Huy'!");
+        trangThai = tt;
+    }
+
+    // ---------- Các hàm ghi đè từ LopCoSo ----------
+
+    // Thêm hợp đồng mới trên đối tượng tạm; gõ 'HUY' ở bất kỳ bước nào thì hủy hết
+    void nhapThongTin() override {
+        HopDong tam;
+        try {
+            lap([&] {
+                std::string ma = chuanHoaMa(docHoacHuy("Nhap ma hop dong"), "Ma hop dong");
+                if (kiemTraMaTonTai && kiemTraMaTonTai(ma))
+                    throw std::invalid_argument("Ma hop dong da ton tai!");
+                tam.setMaDinhDanh(ma);
+            });
+            lap([&] { tam.setMaKhachHang(docHoacHuy("Nhap ma khach hang")); });
+            std::cout << " -> Loai khach hang: " << tam.loaiKhachHang << "\n";
+            lap([&] { tam.setMaGoiCuoc(docHoacHuy("Nhap ma goi cuoc")); });
+            lap([&] { tam.setMaThietBi(docHoacHuy("Nhap ma thiet bi")); });
+            lap([&] {
+                std::string ky = docHoacHuy("Nhap ngay ky (DD/MM/YYYY)");
+                std::string het = docHoacHuy("Nhap ngay het han (DD/MM/YYYY)");
+tam.setThoiHan(ky, het);
+            });
+            lap([&] { tam.setGiaThieuDung(phanTichGia(docHoacHuy("Nhap gia thue dung (>= 0)"))); });
+            std::cout << "\nTrang thai hop dong:\n1. Hoat dong\n2. Het han\n3. Huy\n";
+            lap([&] { tam.chonTrangThai(false); });
+        }
+        catch (const std::invalid_argument& e) {
+            if (std::string(e.what()) == "HUY") {
+                std::cout << " -> Da huy thao tac them hop dong.\n";
+                maDinhDanh = ""; // báo cho main biết đã hủy, không gọi themMoi
+                return;
+            }
+            throw;
+        }
+        *this = tam;
+    }
+
+    // Cập nhật: bỏ trống = giữ nguyên, không sửa mã; 'HUY' hủy cả lần cập nhật
+    void capNhatThongTin() override {
+        HopDong tam = *this;
+        try {
+            std::cout << "\n--- CAP NHAT HOP DONG " << maDinhDanh << " ---\n";
+            lap([&] {
+                std::string s = docTuyChon("Ma khach hang moi (hien tai: " + tam.maKhachHang + ")");
+                if (!s.empty()) {
+                    tam.setMaKhachHang(s);
+                    std::cout << " -> Loai khach hang: " << tam.loaiKhachHang << "\n";
+                }
+            });
+            lap([&] {
+                std::string s = docTuyChon("Ma goi cuoc moi (hien tai: " + tam.maGoiCuoc + ")");
+                if (!s.empty()) tam.setMaGoiCuoc(s);
+            });
+            lap([&] {
+                std::string s = docTuyChon("Ma thiet bi moi (hien tai: " + tam.maThietBi + ")");
+                if (!s.empty()) tam.setMaThietBi(s);
+            });
+            lap([&] {
+                std::string ky = docTuyChon("Ngay ky moi (hien tai: " + tam.ngayKy + ")");
+                std::string het = docTuyChon("Ngay het han moi (hien tai: " + tam.ngayHetHan + ")");
+                tam.setThoiHan(ky.empty() ? tam.ngayKy : ky,
+                               het.empty() ? tam.ngayHetHan : het);
+            });
+            lap([&] {
+                std::ostringstream hienTai;
+                hienTai << std::fixed << std::setprecision(0) << tam.giaThieuDung;
+                std::string s = docTuyChon("Gia thue dung moi (hien tai: " + hienTai.str() + ")");
+                if (!s.empty()) tam.setGiaThieuDung(phanTichGia(s));
+            });
+            std::cout << "\nTrang thai hop dong:\n1. Hoat dong\n2. Het han\n3. Huy\n";
+            lap([&] { tam.chonTrangThai(true); });
+        }
+        catch (const std::invalid_argument& e) {
+            if (std::string(e.what()) == "HUY")
+                throw std::runtime_error("Nguoi dung da huy cap nhat!");
+            throw;
+        }
+        *this = tam;
+    }
+
+    // Một dòng căn cột, khớp với inTieuDe()
+    void hienThiThongTin() const override {
+        std::ostringstream gia;
+        gia << std::fixed << std::setprecision(0) << giaThieuDung;
+        std::cout << std::left
+            << std::setw(8)  << cat(maDinhDanh, 8)    << " | "
+<< std::setw(8)  << cat(maKhachHang, 8)   << " | "
+            << std::setw(8)  << cat(maGoiCuoc, 8)     << " | "
+            << std::setw(8)  << cat(maThietBi, 8)     << " | "
+            << std::setw(11) << ngayKy                << " | "
+            << std::setw(11) << ngayHetHan            << " | "
+            << std::setw(13) << gia.str()             << " | "
+            << std::setw(13) << loaiKhachHang         << " | "
+            << std::setw(11) << trangThai             << '\n';
+    }
+
+    std::string chuyenThanhChuoi() const override {
+        std::ostringstream ss;
+        ss << maDinhDanh << '|' << maKhachHang << '|' << maGoiCuoc << '|' << maThietBi << '|'
+           << ngayKy << '|' << ngayHetHan << '|'
+           << std::setprecision(15) << giaThieuDung << '|'
+           << loaiKhachHang << '|' << trangThai;
+        return ss.str();
+    }
+
+    // Đọc một dòng file; sai thì ném ngoại lệ và KHÔNG làm thay đổi đối tượng
+    void docTuChuoi(const std::string& dong) override {
+        std::vector<std::string> f = tachTruong(dong);
+        if (f.size() != 9)
+            throw std::invalid_argument("Dong du lieu HopDong co so cot khong dung (can 9).");
+
+        HopDong tam;
+        tam.setMaDinhDanh(chuanHoaMa(f[0], "Ma hop dong"));
+        tam.setMaKhachHang(f[1]);   // đồng thời lấy loại khách hàng mới nhất từ dữ liệu Khách hàng
+        tam.setMaGoiCuoc(f[2]);
+        tam.setMaThietBi(f[3]);
+        tam.setThoiHan(f[4], f[5]);
+        tam.setGiaThieuDung(phanTichGia(f[6]));
+        if (!hopLeLoaiKH(f[7]))
+            throw std::invalid_argument("Loai khach hang khong hop le: " + f[7]);
+        tam.setTrangThai(f[8]);
+        *this = tam;
+    }
+};
+
+#endif // HOP_DONG_H
