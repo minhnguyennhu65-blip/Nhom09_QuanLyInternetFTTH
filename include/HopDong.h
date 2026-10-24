@@ -158,7 +158,9 @@ public:
         }
 
         maKhachHang = nhapMaKhoaNgoai("Nhap ma khach hang (Nhan '0' de huy): ", "data/khach_hang.txt", "khach hang");
-        if (maKhachHang.empty()) { cout << " -> Da huy thao tac them hop dong.\n"; return; }
+        if (maKhachHang.empty()) {
+            throw std::invalid_argument("Ma khach hang khong duoc de trong!");
+        }
 
         // Tự động lấy loại khách hàng từ file khach_hang.txt
         loaiKhachHang = layLoaiKhachHang(maKhachHang);
@@ -169,10 +171,14 @@ public:
         cout << " -> Loai khach hang: " << loaiKhachHang << "\n";
 
         maGoiCuoc = nhapMaKhoaNgoai("Nhap ma goi cuoc (Nhan '0' de huy): ", "data/goi_internet.txt", "goi cuoc");
-        if (maGoiCuoc.empty()) { cout << " -> Da huy thao tac them hop dong.\n"; return; }
+        if (maGoiCuoc.empty()) {
+            throw std::invalid_argument("Ma goi cuoc khong duoc de trong!");
+        }
 
         maThietBi = nhapMaKhoaNgoai("Nhap ma thiet bi (Nhan '0' de huy): ", "data/thiet_bi.txt", "thiet bi");
-        if (maThietBi.empty()) { cout << " -> Da huy thao tac them hop dong.\n"; return; }
+        if (maThietBi.empty()) {
+            throw std::invalid_argument("Ma thiet bi khong duoc de trong!");
+        }
 
         // Nhập ngày ký và ngày hết hạn
         while (true) {
@@ -313,6 +319,21 @@ public:
         }
         catch (...) {
             throw std::invalid_argument("Gia thieu dung khong hop le.");
+        }
+
+        // Kiểm tra mã khách hàng - BẮT BUỘC không được rỗng
+        if (maKH.empty()) {
+            throw std::invalid_argument("Ma khach hang khong duoc de trong!");
+        }
+
+        // Kiểm tra mã gói cước - BẮT BUỘC không được rỗng
+        if (maGoi.empty()) {
+            throw std::invalid_argument("Ma goi cuoc khong duoc de trong!");
+        }
+
+        // Kiểm tra mã thiết bị - BẮT BUỘC không được rỗng
+        if (maTB.empty()) {
+            throw std::invalid_argument("Ma thiet bi khong duoc de trong!");
         }
 
         // Kiểm tra ngày
