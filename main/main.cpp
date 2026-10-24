@@ -1,7 +1,7 @@
 /* =======================================================
-- Tên tác giả: Đinh Văn Trường
-- Mô tả file: Chương trình chính (main.cpp) tổng hợp toàn bộ
-- ======================================================= */
+ * Tên tác giả: Đinh Văn Trường
+ * Mô tả file: Chương trình chính (main.cpp) tổng hợp toàn bộ
+ * ======================================================= */
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -87,7 +87,13 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
 
         switch (chon) {
         case 1: {
-            ql.hienThi();
+            // Tự động kiểm tra và in tiêu đề bảng nếu lớp T có hỗ trợ hàm inTieuDe()
+            if constexpr (requires { T::inTieuDe(); }) {
+                ql.hienThi(T::inTieuDe);
+            }
+            else {
+                ql.hienThi();
+            }
             break;
         }
         case 2: {
@@ -154,82 +160,98 @@ int main() {
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(NULL);
 
-    QuanLyLuuTru<GoiInternet>     qlGoiInternet("data/goi_internet.txt");
-    qlGoiInternet.docTuFile();
+    try {
+        QuanLyLuuTru<GoiInternet>      qlGoiInternet("data/goi_internet.txt");
+        qlGoiInternet.docTuFile();
 
-    QuanLyLuuTru<TuyenCap>        qlTuyenCap("data/tuyen_cap.txt");
-    qlTuyenCap.docTuFile();
+        QuanLyLuuTru<TuyenCap>         qlTuyenCap("data/tuyen_cap.txt");
+        qlTuyenCap.docTuFile();
 
-    QuanLyLuuTru<KhachHang>       qlKhachHang("data/khach_hang.txt");
-    qlKhachHang.docTuFile();
+        QuanLyLuuTru<KhachHang>        qlKhachHang("data/khach_hang.txt");
+        qlKhachHang.docTuFile();
 
-    QuanLyLuuTru<HopDong>         qlHopDong("data/hop_dong.txt");
-    qlHopDong.docTuFile();
+        QuanLyLuuTru<HopDong>          qlHopDong("data/hop_dong.txt");
+        qlHopDong.docTuFile();
 
-    QuanLyLuuTru<ThietBi>         qlThietBi("data/thiet_bi.txt");
-    qlThietBi.docTuFile();
+        QuanLyLuuTru<ThietBi>          qlThietBi("data/thiet_bi.txt");
+        qlThietBi.docTuFile();
 
-    QuanLyLuuTru<CongOLT>         qlOLT("data/cong_olt.txt");
-    qlOLT.docTuFile();
+        QuanLyLuuTru<CongOLT>          qlOLT("data/cong_olt.txt");
+        qlOLT.docTuFile();
 
-    QuanLyLuuTru<PhieuLapDat>     qlLapDat("data/phieu_lap_dat.txt");
-    qlLapDat.docTuFile();
+        QuanLyLuuTru<PhieuLapDat>      qlLapDat("data/phieu_lap_dat.txt");
+        qlLapDat.docTuFile();
 
-    QuanLyLuuTru<PhieuSuaChua>    qlSuaChua("data/phieu_sua_chua.txt");
-    qlSuaChua.docTuFile();
+        QuanLyLuuTru<PhieuSuaChua>     qlSuaChua("data/phieu_sua_chua.txt");
+        qlSuaChua.docTuFile();
 
-    QuanLyLuuTru<HoaDonCuoc>      qlHoaDon("data/hoa_don_cuoc.txt");
-    qlHoaDon.docTuFile();
+        QuanLyLuuTru<HoaDonCuoc>       qlHoaDon("data/hoa_don_cuoc.txt");
+        qlHoaDon.docTuFile();
 
-    QuanLyLuuTru<NhanVienKyThuat> qlNhanVien("data/nhan_vien.txt");
-    qlNhanVien.docTuFile();
+        QuanLyLuuTru<NhanVienKyThuat>  qlNhanVien("data/nhan_vien.txt");
+        qlNhanVien.docTuFile();
 
-    CongOLT::setDBKhachHang(&qlKhachHang);
+        // Gắn kết nối kiểm tra khóa ngoại cho CongOLT
+        CongOLT::setDBKhachHang(&qlKhachHang);
+        CongOLT::setKiemTraTuyenCap([&](const std::string& ma) {
+            return qlTuyenCap.timTheoMa(ma) != nullptr;
+        });
 
-    int luaChon;
-    do {
-        hienThiMenuTong();
-        luaChon = nhapSoTrongKhoang(0, 11, "Nhap lua chon cua ban (0-11): ");
-        std::cout << "\n";
+        // Gắn kết nối kiểm tra khóa ngoại cho ThietBi (kiểm tra mã Hợp đồng HDO)
+        ThietBi::setKiemTraHopDong([&](const std::string& ma) {
+            return qlHopDong.timTheoMa(ma) != nullptr;
+        });
 
-        switch (luaChon) {
-        case 1: menuCRUD(qlGoiInternet, "GOI INTERNET (UC01 - Tran Ngoc Huy)"); break;
-        case 2: menuCRUD(qlTuyenCap, "TUYEN CAP (UC02 - Tran Ngoc Huy)"); break;
-        case 3: menuCRUD(qlKhachHang, "KHACH HANG (UC03 - Hoang Trong Khoa)"); break;
-        case 4: menuCRUD(qlHopDong, "HOP DONG THUE BAO (UC04 - Hoang Trong Khoa)"); break;
-        case 5: menuCRUD(qlThietBi, "THIET BI ONT/MODEM (UC05 - Nguyen Nhu Minh)"); break;
-        case 6: menuCRUD(qlOLT, "CONG OLT (UC06 - Nguyen Nhu Minh)"); break;
-        case 7: menuCRUD(qlLapDat, "PHIEU LAP DAT (UC07 - Dinh Van Truong)"); break;
-        case 8: menuCRUD(qlSuaChua, "PHIEU SUA CHUA (UC08 - Dinh Van Truong)"); break;
-        case 9: menuCRUD(qlHoaDon, "HOA DON CUOC (UC09 - Nguyen Duc Huy)"); break;
-        case 10: menuCRUD(qlNhanVien, "NHAN VIEN KY THUAT (UC10 - Nguyen Đức Huy)"); break;
-        case 11: {
-            std::cout << "--- THONG KE TONG HOP DU LIEU ---\n";
-            std::cout << " - Tong so Goi cuoc: " << qlGoiInternet.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Tuyen cap: " << qlTuyenCap.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Khach hang: " << qlKhachHang.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Hop dong: " << qlHopDong.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Thiet bi: " << qlThietBi.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Cong OLT: " << qlOLT.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Phieu lap dat: " << qlLapDat.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Phieu sua chua: " << qlSuaChua.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Hoa don: " << qlHoaDon.getDanhSach().size() << "\n";
-            std::cout << " - Tong so Nhan vien: " << qlNhanVien.getDanhSach().size() << "\n";
-            break;
-        }
-        case 0: {
-            std::cout << " -> Cam on ban da su dung chuong trinh. Tam biet!\n";
-            break;
-        }
-        }
+        int luaChon;
+        do {
+            hienThiMenuTong();
+            luaChon = nhapSoTrongKhoang(0, 11, "Nhap lua chon cua ban (0-11): ");
+            std::cout << "\n";
 
-        if (luaChon != 0) {
-            std::cout << "\nNhan Enter de tiep tuc...";
-            std::string dummy;
-            std::getline(std::cin, dummy);
-        }
+            switch (luaChon) {
+            case 1: menuCRUD(qlGoiInternet, "GOI INTERNET (UC01 - Tran Ngoc Huy)"); break;
+            case 2: menuCRUD(qlTuyenCap, "TUYEN CAP (UC02 - Tran Ngoc Huy)"); break;
+            case 3: menuCRUD(qlKhachHang, "KHACH HANG (UC03 - Hoang Trong Khoa)"); break;
+            case 4: menuCRUD(qlHopDong, "HOP DONG THUE BAO (UC04 - Hoang Trong Khoa)"); break;
+            case 5: menuCRUD(qlThietBi, "THIET BI ONT/MODEM (UC05 - Nguyen Nhu Minh)"); break;
+            case 6: menuCRUD(qlOLT, "CONG OLT (UC06 - Nguyen Nhu Minh)"); break;
+            case 7: menuCRUD(qlLapDat, "PHIEU LAP DAT (UC07 - Dinh Van Truong)"); break;
+            case 8: menuCRUD(qlSuaChua, "PHIEU SUA CHUA (UC08 - Dinh Van Truong)"); break;
+            case 9: menuCRUD(qlHoaDon, "HOA DON CUOC (UC09 - Nguyen Duc Huy)"); break;
+            case 10: menuCRUD(qlNhanVien, "NHAN VIEN KY THUAT (UC10 - Nguyen Duc Huy)"); break;
+            case 11: {
+                std::cout << "--- THONG KE TONG HOP DU LIEU ---\n";
+                std::cout << " - Tong so Goi cuoc: " << qlGoiInternet.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Tuyen cap: " << qlTuyenCap.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Khach hang: " << qlKhachHang.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Hop dong: " << qlHopDong.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Thiet bi: " << qlThietBi.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Cong OLT: " << qlOLT.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Phieu lap dat: " << qlLapDat.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Phieu sua chua: " << qlSuaChua.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Hoa don: " << qlHoaDon.getDanhSach().size() << "\n";
+                std::cout << " - Tong so Nhan vien: " << qlNhanVien.getDanhSach().size() << "\n";
+                break;
+            }
+            case 0: {
+                std::cout << " -> Cam on ban da su dung chuong trinh. Tam biet!\n";
+                break;
+            }
+            }
 
-    } while (luaChon != 0);
+            if (luaChon != 0) {
+                std::cout << "\nNhan Enter de tiep tuc...";
+                std::string dummy;
+                std::getline(std::cin, dummy);
+            }
+
+        } while (luaChon != 0);
+
+    } 
+    catch (const std::exception& e) {
+        std::cerr << "\n -> Loi he thong (Exception): " << e.what() << "\n";
+        std::cerr << " -> Chuong trinh buoc phai thoat an toan.\n";
+    }
 
     return 0;
 }
