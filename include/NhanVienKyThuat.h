@@ -1,4 +1,4 @@
-/* =======================================================
+* =======================================================
  * Tên tác giả: Nguyễn Đức Huy
  * Mã sinh viên: B24DCVT176
  * Mô tả file: Lớp nhân viên kỹ thuật
@@ -16,6 +16,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <iomanip>
 
 class NhanVienKyThuat : public LopCoSo {
 private:
@@ -41,7 +42,7 @@ private:
     // Kiểm tra chuỗi không rỗng
     static bool hopLeChuoi(const std::string& s) {
         return !s.empty() &&
-               s.find('|') == std::string::npos;
+            s.find('|') == std::string::npos;
     }
 
     // Kiểm tra số điện thoại khi đọc từ file
@@ -60,7 +61,7 @@ private:
     // Kiểm tra trạng thái
     static bool hopLeTrangThai(const std::string& tt) {
         return tt == "Dang lam" ||
-               tt == "Nghi";
+            tt == "Nghi";
     }
 
     // Ném ngoại lệ nếu dữ liệu không hợp lệ
@@ -70,6 +71,11 @@ private:
 
         if (!dieuKien)
             throw std::invalid_argument(thongBao);
+    }
+
+    // Cắt chuỗi dài để không làm lệch cột khi in bảng
+    static std::string cat(const std::string& s, std::size_t n) {
+        return s.size() <= n ? s : s.substr(0, n - 2) + "..";
     }
 
 public:
@@ -104,6 +110,18 @@ public:
         );
 
         trangThai = tt;
+    }
+
+    // IN TIÊU ĐỀ BẢNG CHUẨN
+    static void inTieuDe() {
+        std::cout << std::left
+            << std::setw(12) << "Ma NV" << " | "
+            << std::setw(18) << "Ho ten" << " | "
+            << std::setw(12) << "SDT" << " | "
+            << std::setw(16) << "Chuyen mon" << " | "
+            << std::setw(16) << "Khu vuc" << " | "
+            << std::setw(12) << "Trang thai" << '\n'
+            << std::string(97, '-') << '\n';
     }
 
     // Nhập thông tin
@@ -148,7 +166,6 @@ public:
     }
 
     // Cập nhật thông tin
-    // Không cho phép thay đổi mã nhân viên
     void capNhatThongTin() override {
         hoTen =
             NhapDuLieu::nhapChuoi(
@@ -184,26 +201,25 @@ public:
         }
     }
 
-    // Hiển thị thông tin
+    // Hiển thị thông tin 1 dòng dạng bảng khớp với inTieuDe()
     void hienThiThongTin() const override {
-        std::cout
-            << "Ma NV: " << maDinhDanh
-            << " | Ho ten: " << hoTen
-            << " | SDT: " << soDienThoai
-            << " | Chuyen mon: " << chuyenMon
-            << " | Khu vuc: " << khuVucPhuTrach
-            << " | Trang thai: " << trangThai
-            << "\n";
+        std::cout << std::left
+            << std::setw(12) << cat(maDinhDanh, 11) << " | "
+            << std::setw(18) << cat(hoTen, 17) << " | "
+            << std::setw(12) << soDienThoai << " | "
+            << std::setw(16) << cat(chuyenMon, 15) << " | "
+            << std::setw(16) << cat(khuVucPhuTrach, 15) << " | "
+            << std::setw(12) << trangThai << '\n';
     }
 
     // Chuyển thành chuỗi lưu file
     std::string chuyenThanhChuoi() const override {
         return maDinhDanh + "|" +
-               hoTen + "|" +
-               soDienThoai + "|" +
-               chuyenMon + "|" +
-               khuVucPhuTrach + "|" +
-               trangThai;
+            hoTen + "|" +
+            soDienThoai + "|" +
+            chuyenMon + "|" +
+            khuVucPhuTrach + "|" +
+            trangThai;
     }
 
     // Đọc dữ liệu từ file
@@ -259,3 +275,4 @@ public:
 };
 
 #endif
+
