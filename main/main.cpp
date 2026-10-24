@@ -89,7 +89,7 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
         case 1: {
             // Tự động kiểm tra và in tiêu đề bảng nếu lớp T có hỗ trợ hàm inTieuDe()
             if constexpr (requires { T::inTieuDe(); }) {
-                ql.hienThi(T::inTieuDe);
+                ql.hienThi([ ] () { T::inTieuDe(); });
             }
             else {
                 ql.hienThi();
