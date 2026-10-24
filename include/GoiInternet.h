@@ -117,11 +117,12 @@ public:
     }
 
     void capNhatThongTin() override {
-        std::cout << "(Ma goi " << maDinhDanh << " duoc khoa, khong thể thay doi)\n";
+        std::cout << "(Ma goi " << maDinhDanh << " duoc khoa, khong the thay doi)\n";
         nhapThuocTinh();
     }
 
-    static void inTieuDeBang() {
+    // Đã đổi tên từ inTieuDeBang thành inTieuDe để tương thích với menuCRUD chung
+    static void inTieuDe() {
         std::cout << std::left
                   << std::setw(10) << "Ma goi"
                   << std::setw(18) << "Ten goi"
@@ -216,7 +217,7 @@ namespace UC01 {
             std::cout << " -> Danh sach rong!\n";
             return;
         }
-        GoiInternet::inTieuDeBang();
+        GoiInternet::inTieuDe();
         double tongGia = 0;
         for (const auto& goi : ds) {
             goi.hienThiThongTin();
@@ -235,7 +236,7 @@ namespace UC01 {
             std::cout << " -> Khong tim thay goi co ma: " << ma << "\n";
             return;
         }
-        GoiInternet::inTieuDeBang();
+        GoiInternet::inTieuDe();
         goi->hienThiThongTin();
         std::cout << std::string(116, '-') << "\n";
     }
@@ -249,7 +250,7 @@ namespace UC01 {
             return;
         }
         std::cout << "Thong tin hien tai:\n";
-        GoiInternet::inTieuDeBang();
+        GoiInternet::inTieuDe();
         goi->hienThiThongTin();
         std::cout << "\nNhap thong tin moi:\n";
         ql.capNhat(ma);
@@ -267,7 +268,7 @@ namespace UC01 {
             std::cout << " -> Canh bao: Goi '" << ma << "' dang duoc su dung trong Hop dong!\n";
             return;
         }
-        GoiInternet::inTieuDeBang();
+        GoiInternet::inTieuDe();
         goi->hienThiThongTin();
         if (NhapDuLieu::xacNhan("Ban co chac chan muon xoa goi nay?")) {
             ql.xoaTheoMa(ma);
@@ -275,45 +276,6 @@ namespace UC01 {
             std::cout << " -> Da huy thao tac xoa.\n";
         }
     }
-
-    inline void chayMenu() {
-        try { std::filesystem::create_directories("data"); } catch (...) {}
-        QuanLyLuuTru<GoiInternet> ql(FILE_GOI_INTERNET);
-        while (true) {
-            std::cout << "\n===== UC01 - QUAN LY GOI INTERNET =====\n"
-                      << "1. Them goi\n"
-                      << "2. Hien thi danh sach\n"
-                      << "3. Tim kiem theo ma\n"
-                      << "4. Sua thong tin\n"
-                      << "5. Xoa goi\n"
-                      << "0. Quay lai\n";
-            int chon = NhapDuLieu::nhapSoNguyenDuong("Chon chuc nang: ");
-            switch (chon) {
-                case 1: themGoi(ql); break;
-                case 2: hienThiDanhSach(ql); break;
-                case 3: timKiemGoi(ql); break;
-                case 4: suaGoi(ql); break;
-                case 5: xoaGoi(ql); break;
-                case 0: return;
-                default: std::cout << " -> Loi: Lua chon khong hop le!\n";
-            }
-        }
-    }
 }
 
 #endif
-
-
-
-
-    
-
-    
-     
-
-              
-      
-
- 
-    
-
