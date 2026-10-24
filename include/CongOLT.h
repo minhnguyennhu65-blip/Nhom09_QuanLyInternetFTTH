@@ -13,180 +13,370 @@
 #include "KhachHang.h"
 
 #include <iostream>
+#include <iomanip>
 #include <string>
-#include <sstream>
-#include <stdexcept>
+#include <vector>
+#include <cctype>
 #include <limits>
+#include <functional>
+#include <stdexcept>
+#include <algorithm>
 
 class CongOLT : public LopCoSo {
 private:
-    // Các thuộc tính chính của Cổng OLT
     std::string tenOLT;
     int soCong;
     std::string khuVuc;
-    std::string maKhachHang; // Liên kết khóa ngoại với bảng Khách hàng
-    std::string trangThai;   // Trạng thái: "Trong", "Dang su dung", "Hong"
+    std::string maTuyenCap;  // Khóa ngoại tới Tuyến cáp (UC02)
+    std::string maKhachHang; // Khóa ngoại tới Khách hàng (rỗng nếu cổng không có khách)
+    std::string trangThai;   // "Trong", "Dang su dung", "Hong"
 
-    // Con trỏ tĩnh quản lý CSDL Khách hàng để kiểm tra tính toàn vẹn tham chiếu (Khóa ngoại)
-    // Dùng inline static để khai báo và khởi tạo trực tiếp ngay trong file .h
+    // Bộ quản lý Khách hàng dùng để kiểm tra khóa ngoại
     inline static QuanLyLuuTru<KhachHang>* dbKhachHang = nullptr;
 
-    // Kiểm tra xem trạng thái truyền vào có nằm trong danh mục cho phép hay không
-    bool hopLeTrangThai(const std::string& tt) const {
-        return tt == "Trong" ||
-               tt == "Dang su dung" ||
-               tt == "Hong";
+    // Hàm kiểm tra mã tuyến cáp có tồn tại không (gắn từ main)
+    inline static std::function<bool(const std::string&)> kiemTraTuyenCap = nullptr;
+
+    // ---------- Hàm kiểm tra / tiện ích nội bộ ----------
+
+    static bool hopLeTrangThai(const std::string& tt) {
+        return tt == "Trong" || tt == "Dang su dung" || tt == "Hong";
     }
 
-    // Kiểm tra sự tồn tại của mã khách hàng trong cơ sở dữ liệu
-    // Trả về false nếu chưa kết nối DB để ép buộc kiểm tra khóa ngoại nghiêm ngặt
-    bool khachHangTonTai(const std::string& ma) const {
-        if (dbKhachHang == nullptr)
-            return false;
-
-        return dbKhachHang->timTheoMa(ma) != nullptr;
-    }
-
-    // Giao diện tương tác để người dùng chọn trạng thái cổng và ràng buộc mã khách hàng tương ứng
-    void nhapTrangThai() {
-        int chon;
-        do {
-            std::cout << "\nTrang thai cong:\n";
-            std::cout << "1. Trong\n";
-            std::cout << "2. Dang su dung\n";
-            std::cout << "3. Hong\n";
-
-            chon = NhapDuLieu::nhapSoNguyenDuong("Chon trang thai: ");
-
-            if (chon < 1 || chon > 3)
-                std::cout << "Lua chon khong hop le!\n";
-        } while (chon < 1 || chon > 3);
-
-        // Xử lý logic gán dữ liệu dựa theo lựa chọn trạng thái
-        if (chon == 1) {
-            trangThai = "Trong";
-            maKhachHang = ""; // Trạng thái trống thì không có khách hàng sử dụng
-        } else if (chon == 2) {
-            trangThai = "Dang su dung";
-            // Bắt buộc nhập mã khách hàng hợp lệ và tồn tại trong hệ thống (Khóa ngoại)
-            do {
-                maKhachHang = NhapDuLieu::nhapMaDinhDanh("Nhap ma khach hang: ");
-                if (!khachHangTonTai(maKhachHang))
-                    std::cout << "Khach hang khong ton tai!\n";
-            } while (!khachHangTonTai(maKhachHang));
-        } else {
-            trangThai = "Hong";
-            maKhachHang = ""; // Trạng thái hỏng thì thu hồi mã khách hàng
+    // Chuỗi dữ liệu hợp lệ: không chứa '|' (dấu phân cách file) và ký tự điều khiển
+    static void kiemTraChuoi(const std::string& s, const std::string& ten) {
+        if (s == "HUY" || s == "huy")
+            throw std::invalid_argument("HUY");
+        if (s.empty())
+            throw std::invalid_argument(ten + " khong duoc rong!");
+        if (s.find('|') != std::string::npos)
+            throw std::invalid_argument(ten + " khong duoc chua ky tu '|'!");
+        for (char c : s) {
+            if (std::iscntrl(static_cast<unsigned char>(c)))
+                throw std::invalid_argument(ten + " khong duoc chua ky tu dieu khien!");
         }
     }
 
+    // Chuẩn hóa mã (khóa ngoại): chỉ chữ cái không dấu, số, '_' hoặc '-'; viết hoa.
+    static std::string chuanHoaMa(const std::string& ma, const std::string& ten) {
+        if (ma == "HUY" || ma == "huy")
+            throw std::invalid_argument("HUY");
+        if (ma.empty())
+            throw std::invalid_argument(ten + " khong duoc rong!");
+        std::string kq = ma;
+        for (char& c : kq) {
+            unsigned char uc = static_cast<unsigned char>(c);
+            if (!(std::isalnum(uc) && uc < 128) && c != '_' && c != '-')
+                throw std::invalid_argument(
+                    ten + " chi gom chu cai khong dau, chu so, '_' hoac '-'!");
+            c = static_cast<char>(std::toupper(uc));
+        }
+        return kq;
+    }
+
+    // Tách theo '|', GIỮ lại cả trường rỗng ở giữa và ở cuối
+    static std::vector<std::string> tachTruong(const std::string& s) {
+        std::vector<std::string> kq;
+        std::size_t dau = 0;
+        while (true) {
+            std::size_t p = s.find('|', dau);
+            if (p == std::string::npos) {
+                kq.push_back(s.substr(dau));
+                break;
+            }
+            kq.push_back(s.substr(dau, p - dau));
+            dau = p + 1;
+        }
+        return kq;
+    }
+
+    // Chuyển chuỗi thành số nguyên; sai định dạng thì ném invalid_argument
+    static int chuyenSoCong(const std::string& s) {
+        if (s == "HUY" || s == "huy")
+            throw std::invalid_argument("HUY");
+        try {
+            std::size_t vt = 0;
+            int v = std::stoi(s, &vt);
+            if (vt != s.size()) throw std::invalid_argument("");
+            return v;
+        }
+        catch (const std::exception&) {
+            throw std::invalid_argument("So cong khong hop le!");
+        }
+    }
+
+    // Cắt chuỗi dài để không làm lệch cột khi in bảng
+    static std::string cat(const std::string& s, std::size_t n) {
+        return s.size() <= n ? s : s.substr(0, n - 2) + "..";
+    }
+
+    bool khachHangTonTai(const std::string& ma) const {
+        if (dbKhachHang == nullptr) return false;
+        return dbKhachHang->timTheoMa(ma) != nullptr;
+    }
+
+    // Lặp lại thao tác nhập cho đến khi setter không ném ngoại lệ, trả về false nếu gõ HUY
+    template <typename F>
+    static bool lapDenKhiHopLe(F thucHien) {
+        while (true) {
+            try {
+                thucHien();
+                return true;
+            }
+            catch (const std::invalid_argument& e) {
+                std::string err = e.what();
+                if (err == "HUY") {
+                    return false;
+                }
+                std::cout << " -> Loi: " << err << '\n';
+            }
+        }
+    }
+
+    // Dùng cho cập nhật: bỏ trống = giữ nguyên, sai thì nhập lại
+    template <typename F>
+    static void capNhatTruong(const std::string& nhan, F setter) {
+        while (true) {
+            std::string s = NhapDuLieu::nhapChuoiHoacGiuNguyen(
+                nhan + " (bo trong de giu nguyen, hoac nhap 'HUY'): ", "");
+            if (s.empty()) return;
+            if (s == "HUY" || s == "huy") return;
+            try { setter(s); return; }
+            catch (const std::invalid_argument& e) {
+                std::string err = e.what();
+                if (err == "HUY") return;
+                std::cout << " -> Loi: " << err << '\n';
+            }
+        }
+    }
+
+    // Chọn trạng thái. Trả về false nếu người dùng bỏ trống hoặc hủy
+    bool nhapTrangThai(bool choPhepBoTrong) {
+        std::string thongBaoChon = choPhepBoTrong
+            ? "Chon trang thai (bo trong de giu nguyen, hoac nhap 'HUY'): "
+            : "Chon trang thai (hoac nhap 'HUY'): ";
+
+        std::cout << "\nTrang thai cong:\n"
+            << "1. Trong\n"
+            << "2. Dang su dung\n"
+            << "3. Hong\n";
+
+        std::string s = NhapDuLieu::nhapChuoiHoacGiuNguyen(thongBaoChon, "");
+        if (s.empty() && choPhepBoTrong) return false;
+        if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
+
+        int chon = 0;
+        try {
+            chon = std::stoi(s);
+        }
+        catch (...) {
+            chon = 0;
+        }
+
+        if (choPhepBoTrong && chon == 0) return false;
+        if (chon == 1) { setTrangThai("Trong"); return true; }
+        if (chon == 3) { setTrangThai("Hong");  return true; }
+
+        if (chon == 2) {
+            bool thanhCong = lapDenKhiHopLe([&] {
+                std::string maKH = NhapDuLieu::nhapMaDinhDanh("Nhap ma khach hang (hoac 'HUY'): ");
+                if (maKH == "HUY" || maKH == "huy") throw std::invalid_argument("HUY");
+                setTrangThai("Dang su dung", maKH);
+                });
+            return thanhCong;
+        }
+
+        std::cout << " -> Loi: Lua chon khong hop le!\n";
+        return nhapTrangThai(choPhepBoTrong);
+    }
+
 public:
-    // Constructor mặc định khởi tạo giá trị ban đầu
     CongOLT() : LopCoSo(), soCong(1), trangThai("Trong") {}
 
-    // Phương thức tĩnh thiết lập liên kết đến bộ quản lý Khách hàng từ chương trình chính (main.cpp)
     static void setDBKhachHang(QuanLyLuuTru<KhachHang>* db) {
         dbKhachHang = db;
     }
 
-    // Nhập thông tin chi tiết cho một Cổng OLT mới (Ghi đè từ LopCoSo)
-    void nhapThonTin() override {
-        maDinhDanh = NhapDuLieu::nhapMaDinhDanh("Nhap ma cong: ");
-        tenOLT = NhapDuLieu::nhapChuoi("Nhap ten OLT: ");
-
-        do {
-            soCong = NhapDuLieu::nhapSoNguyenDuong("Nhap so cong: ");
-            if (soCong < 1) std::cout << "So cong phai lon hon 0!\n";
-        } while (soCong < 1);
-
-        khuVuc = NhapDuLieu::nhapChuoi("Nhap khu vuc: ");
-        nhapTrangThai();
+    static void setKiemTraTuyenCap(std::function<bool(const std::string&)> f) {
+        kiemTraTuyenCap = std::move(f);
     }
 
-    // Cập nhật thông tin Cổng OLT (giữ nguyên mã định danh, sửa các thuộc tính khác)
-    void capNhatThongTin() override {
-        tenOLT = NhapDuLieu::nhapChuoi("Nhap ten OLT moi: ");
-
-        do {
-            soCong = NhapDuLieu::nhapSoNguyenDuong("Nhap so cong moi: ");
-            if (soCong < 1) std::cout << "So cong phai lon hon 0!\n";
-        } while (soCong < 1);
-
-        khuVuc = NhapDuLieu::nhapChuoi("Nhap khu vuc moi: ");
-        nhapTrangThai();
+    // Định dạng tiêu đề bảng chuẩn có dấu phân cách ' | '
+    static void inTieuDe() {
+        std::cout << std::left
+            << std::setw(10) << "Ma cong" << " | "
+            << std::setw(12) << "Ma tuyen" << " | "
+            << std::setw(16) << "Ten OLT" << " | "
+            << std::setw(8) << "So cong" << " | "
+            << std::setw(14) << "Khu vuc" << " | "
+            << std::setw(10) << "Ma KH" << " | "
+            << std::setw(14) << "Trang thai" << '\n'
+            << std::string(98, '-') << '\n';
     }
 
-    // Hiển thị thông tin cổng OLT ra màn hình dưới dạng tường minh
-    void hienThiThongTin() const override {
-        std::cout << "Ma cong: " << maDinhDanh
-                  << " | OLT: " << tenOLT
-                  << " | So cong: " << soCong
-                  << " | Khu vuc: " << khuVuc
-                  << " | Ma khach hang: "
-                  << (maKhachHang.empty() ? "Khong co" : maKhachHang)
-                  << " | Trang thai: " << trangThai << '\n';
-    }
-
-    // Chuyển đổi đối tượng thành định dạng chuỗi ngăn cách bằng dấu gạch đứng '|' để ghi file
-    std::string chuyenThanhChuoi() const override {
-        return maDinhDanh + "|" + tenOLT + "|" +
-               std::to_string(soCong) + "|" + khuVuc + "|" +
-               maKhachHang + "|" + trangThai;
-    }
-
-    // Đọc và phân tích dữ liệu từ một dòng trong file văn bản, kiểm tra lỗi cú pháp và ràng buộc
-    void docTuChuoi(const std::string& dongDuLieu) override {
-        std::istringstream dong(dongDuLieu);
-        std::string ma, ten, so, kv, maKH, tt, thua;
-
-        // Đảm bảo dòng dữ liệu có đúng cấu trúc 6 trường phân tách bởi dấu '|'
-        if (!std::getline(dong, ma, '|') ||
-            !std::getline(dong, ten, '|') ||
-            !std::getline(dong, so, '|') ||
-            !std::getline(dong, kv, '|') ||
-            !std::getline(dong, maKH, '|') ||
-            !std::getline(dong, tt) ||
-            std::getline(dong, thua, '|')) {
-            throw std::runtime_error("Du lieu khong hop le!");
-        }
-
-        // Kiểm tra và ép kiểu số lượng cổng
-        std::istringstream kiemTraSo(so);
-        int soMoi;
-
-        if (!(kiemTraSo >> soMoi) || soMoi < 1 ||
-            (kiemTraSo >> std::ws, !kiemTraSo.eof())) {
-            throw std::runtime_error("So cong khong hop le!");
-        }
-
-        // Kiểm tra tính hợp lệ của các trường cơ bản và trạng thái
-        if (ma.empty() || ten.empty() || kv.empty() || !hopLeTrangThai(tt)) {
-            throw std::runtime_error("Thong tin khong hop le!");
-        }
-
-        // Kiểm tra ràng buộc khóa ngoại với mã khách hàng theo từng trạng thái thực tế
-        if (tt == "Dang su dung") {
-            if (maKH.empty() || !khachHangTonTai(maKH))
-                throw std::runtime_error("Ma khach hang khong ton tai!");
-        } else if (!maKH.empty()) {
-            throw std::runtime_error("Cong nay khong duoc gan khach hang!");
-        }
-
-        // Gán dữ liệu sau khi đã vượt qua toàn bộ các tầng kiểm tra hợp lệ
-        maDinhDanh = ma;
+    void setTenOLT(const std::string& ten) {
+        kiemTraChuoi(ten, "Ten OLT");
         tenOLT = ten;
-        soCong = soMoi;
+    }
+
+    void setSoCong(int so) {
+        if (so < 1)
+            throw std::invalid_argument("So cong phai lon hon 0!");
+        soCong = so;
+    }
+
+    void setKhuVuc(const std::string& kv) {
+        kiemTraChuoi(kv, "Khu vuc");
         khuVuc = kv;
-        maKhachHang = maKH;
+    }
+
+    void setMaTuyenCap(const std::string& ma) {
+        if (ma == "HUY" || ma == "huy")
+            throw std::invalid_argument("HUY");
+        std::string chuan = chuanHoaMa(ma, "Ma tuyen cap");
+        if (kiemTraTuyenCap && !kiemTraTuyenCap(chuan))
+            throw std::invalid_argument("Tuyen cap khong ton tai!");
+        maTuyenCap = chuan;
+    }
+
+    void setTrangThai(const std::string& tt, const std::string& maKH = "") {
+        if (!hopLeTrangThai(tt))
+            throw std::invalid_argument("Trang thai khong hop le!");
+        if (tt == "Dang su dung") {
+            std::string chuan = chuanHoaMa(maKH, "Ma khach hang");
+            if (!khachHangTonTai(chuan))
+                throw std::invalid_argument("Khach hang khong ton tai!");
+            maKhachHang = chuan;
+        }
+        else {
+            if (!maKH.empty())
+                throw std::invalid_argument("Cong nay khong duoc gan khach hang!");
+            maKhachHang.clear();
+        }
         trangThai = tt;
     }
 
-    // Các hàm Getters để truy vấn thuộc tính từ bên ngoài
-    std::string getTenOLT() const { return tenOLT; }
+    void nhapThongTin() override {
+        std::string maC = NhapDuLieu::nhapMaDinhDanh("Nhap ma cong (hoac nhap 'HUY' de thoat): ");
+        if (maC == "HUY" || maC == "huy") {
+            maDinhDanh = "";
+            return;
+        }
+        setMaDinhDanh(maC);
+
+        if (!lapDenKhiHopLe([&] {
+            std::string s = NhapDuLieu::nhapChuoi("Nhap ten OLT (nhap 'HUY' de huy): ");
+            if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
+            setTenOLT(s);
+            })) {
+            maDinhDanh = ""; return;
+        }
+
+        if (!lapDenKhiHopLe([&] {
+            std::string sSo = NhapDuLieu::nhapChuoi("Nhap so cong (>=1, hoac 'HUY'): ");
+            if (sSo == "HUY" || sSo == "huy") throw std::invalid_argument("HUY");
+            int so = chuyenSoCong(sSo);
+            setSoCong(so);
+            })) {
+            maDinhDanh = ""; return;
+        }
+
+        if (!lapDenKhiHopLe([&] {
+            std::string s = NhapDuLieu::nhapChuoi("Nhap khu vuc (nhap 'HUY' de huy): ");
+            if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
+            setKhuVuc(s);
+            })) {
+            maDinhDanh = ""; return;
+        }
+
+        if (!lapDenKhiHopLe([&] {
+            std::string s = NhapDuLieu::nhapMaDinhDanh("Nhap ma tuyen cap (hoac 'HUY'): ");
+            if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
+            setMaTuyenCap(s);
+            })) {
+            maDinhDanh = ""; return;
+        }
+
+        try {
+            if (!nhapTrangThai(false)) {
+                maDinhDanh = "";
+                return;
+            }
+        }
+        catch (const std::invalid_argument& e) {
+            if (std::string(e.what()) == "HUY") {
+                maDinhDanh = "";
+                return;
+            }
+            throw;
+        }
+    }
+
+    void capNhatThongTin() override {
+        capNhatTruong("Nhap ten OLT moi", [&](const std::string& s) { setTenOLT(s); });
+
+        std::string sSo = NhapDuLieu::nhapChuoiHoacGiuNguyen("Nhap so cong moi (bo trong de giu nguyen, hoac 'HUY'): ", "");
+        if (sSo == "HUY" || sSo == "huy") throw std::invalid_argument("HUY");
+        if (!sSo.empty()) {
+            setSoCong(chuyenSoCong(sSo));
+        }
+
+        capNhatTruong("Nhap khu vuc moi", [&](const std::string& s) { setKhuVuc(s); });
+        capNhatTruong("Nhap ma tuyen cap moi", [&](const std::string& s) { setMaTuyenCap(s); });
+
+        try {
+            nhapTrangThai(true);
+        }
+        catch (const std::invalid_argument& e) {
+            if (std::string(e.what()) == "HUY") return;
+            throw;
+        }
+    }
+
+    // Hiển thị một dòng dữ liệu dạng bảng khớp với tiêu đề inTieuDe()
+    void hienThiThongTin() const override {
+        std::cout << std::left
+            << std::setw(10) << cat(maDinhDanh, 9) << " | "
+            << std::setw(12) << cat(maTuyenCap, 11) << " | "
+            << std::setw(16) << cat(tenOLT, 15) << " | "
+            << std::setw(8) << soCong << " | "
+            << std::setw(14) << cat(khuVuc, 13) << " | "
+            << std::setw(10) << cat(maKhachHang.empty() ? "-" : maKhachHang, 9) << " | "
+            << std::setw(14) << trangThai << '\n';
+    }
+
+    std::string chuyenThanhChuoi() const override {
+        return maDinhDanh + "|" + tenOLT + "|" +
+            std::to_string(soCong) + "|" + khuVuc + "|" +
+            maTuyenCap + "|" + maKhachHang + "|" + trangThai;
+    }
+
+    void docTuChuoi(const std::string& dongDuLieu) override {
+        std::vector<std::string> truong = tachTruong(dongDuLieu);
+        if (truong.size() != 7)
+            throw std::runtime_error("Du lieu khong hop le: sai so truong (can 7)!");
+
+        try {
+            CongOLT tam;
+            tam.setMaDinhDanh(chuanHoaMa(truong[0], "Ma cong"));
+            tam.setTenOLT(truong[1]);
+            tam.setSoCong(chuyenSoCong(truong[2]));
+            tam.setKhuVuc(truong[3]);
+            tam.setMaTuyenCap(truong[4]);
+            tam.setTrangThai(truong[6], truong[5]);
+            *this = tam;
+        }
+        catch (const std::invalid_argument& e) {
+            throw std::runtime_error(e.what());
+        }
+    }
+
+    const std::string& getTenOLT() const { return tenOLT; }
     int getSoCong() const { return soCong; }
-    std::string getKhuVuc() const { return khuVuc; }
-    std::string getMaKhachHang() const { return maKhachHang; }
-    std::string getTrangThai() const { return trangThai; }
+    const std::string& getKhuVuc() const { return khuVuc; }
+    const std::string& getMaTuyenCap() const { return maTuyenCap; }
+    const std::string& getMaKhachHang() const { return maKhachHang; }
+    const std::string& getTrangThai() const { return trangThai; }
 };
 
 #endif
