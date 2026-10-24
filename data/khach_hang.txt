@@ -1,10 +1,14 @@
-KH001|Nguyen Van An|0912345671|123 Cau Giay, Ha Noi|an.nguyen@gmail.com|Ca nhan|15/01/2025|Dang su dung
-KH002|Tran Thi Binh|0923456782|45 Xuan Thuy, Ha Noi|binh.tran@yahoo.com|Ca nhan|01/02/2025|Dang su dung
-KH003|Le Hoang Cuong|0934567893|78 Nguyen Trai, Ha Noi|cuong.le@outlook.com|Ca nhan|10/03/2025|Dang su dung
-KH004|Pham Minh Duc|0945678904|12 Hoang Quoc Viet, Ha Noi|duc.pham@gmail.com|Ca nhan|20/04/2024|Dang su dung
-KH005|Hoang Thu Ha|0956789015|89 Tran Duy Hung, Ha Noi|ha.hoang@gmail.com|Ca nhan|05/05/2025|Dang su dung
-KH006|Vu Van Hung|0967890126|34 Kim Ma, Ha Noi|hung.vu@gmail.com|Ca nhan|12/06/2024|Khoa
-KH007|Dang Thi Mai|0978901237|56 Linh Nam, Ha Noi|mai.dang@gmail.com|Doanh nghiep|01/07/2025|Dang su dung
-KH008|Bui Quoc Nam|0989012348|90 Dai La, Ha Noi|nam.bui@gmail.com|Ca nhan|18/08/2025|Dang su dung
-KH009|Dinh Van Phong|0901234569|11 Giai Phong, Ha Noi|phong.dinh@gmail.com|Ca nhan|10/09/2024|Huy
-KH010|Ngo Gia Quan|0911223344|22 Tay Son, Ha Noi|quan.ngo@gmail.com|Ca nhan|01/10/2025|Dang su dung
+# data/khach_hang.txt
+# MaKH|TenKhachHang|SoDienThoai|DiaChiLapDat|Email|LoaiKhachHang|NgayDangKy|TrangThais
+KH001|Nguyen Van An|0912345678|So 10 Ho Tung Mau, Cau Giay, Ha Noi|an.nv@gmail.com|Ca nhan|15/03/2026|Dang su dung
+KH002|Tran Thi Binh|0987654321|So 25 Le Duan, Ba Dinh, Ha Noi|binh.tt@viettel.com.vn|Doanh nghiep|20/02/2026|Dang su dung
+KH003|Le Hoang Nam|0903123456|123 Nguyen Trai, Thanh Xuan, Ha Noi|namlh@yahoo.com|Ca nhan|10/01/2026|Dang su dung
+KH004|Pham Minh Cuong|0934567890|P502 A1 Ngo Quyet, Hai Phong|cuongpm@fpt.com.vn|Doanh nghiep|05/04/2026|Khoa
+KH005|Hoang Thi Mai|0978123456|So 8 Tran Phu, Ha Dong, Ha Noi|maihv@gmail.com|Ca nhan|12/12/2025|Dang su dung
+KH006|Vu Duc Thang|0962345678|Khu 3, Thi tran Trau Quy, Gia Lam, Ha Noi|thangvd@gmail.com|Ca nhan|18/01/2026|Huy
+KH007|Cong ty TNHH TechCorp|0243888888|Tang 8, Toà nha CMC, Dich Vong Hau, Ha Noi|contact@techcorp.vn|Doanh nghiep|01/03/2026|Dang su dung
+KH008|Bui Thu Huong|0918889999|So 45 Chua Boc, Dong Da, Ha Noi|huongbt@gmail.com|Ca nhan|22/02/2026|Dang su dung
+KH009|Ngo Van Long|0945678123|So 12 Ngo 165 Thai Ha, Dong Da, Ha Noi|longnv@gmail.com|Ca nhan|14/03/2026|Dang su dung
+KH010|Chi nhanh VNPT Ha Noi|0243999999|57 Huynh Thuc Khang, Dong Da, Ha Noi|cskh@vnpt.vn|Doanh nghiep|05/01/2026|Dang su dung
+KH011|Dang Thu Trang|0923456789|So 9 Pho Hue, Hoan Kiem, Ha Noi|trangdt@outlook.com|Ca nhan|10/04/2026|Dang su dung
+KH012|Doan Van Hoang|0981112233|So 72 Hoang Quoc Viet, Cau Giay, Ha Noi|hoangdv@gmail.com|Ca nhan|19/03/2026|Khoa
