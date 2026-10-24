@@ -2,9 +2,6 @@
  * Tên tác giả: Nguyễn Như Minh
  * Mã sinh viên: B24DCVT253
  * Mô tả file: Lớp quản lý thiết bị ONT/Modem (Entity - UC05 - Single Header)
- *
- * Định dạng một dòng trong file (8 trường, ngăn cách bởi '|'):
- *   maTB|tenThietBi|soSerial|loaiThietBi|hangSanXuat|ngayNhapKho|maHopDong|trangThai
  * ======================================================= */
 
 #ifndef THIET_BI_H
@@ -12,6 +9,8 @@
 
 #include "LopCoSo.h"
 #include "NhapDuLieu.h"
+#include "HopDong.h"
+#include "QuanLyLuuTru.h"
 
 #include <algorithm>
 #include <cctype>
@@ -21,6 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <functional>
 
 class ThietBi : public LopCoSo {
 private:
@@ -31,6 +31,9 @@ private:
     std::string ngayNhapKho;   // DD/MM/YYYY, không sau ngày hiện tại
     std::string maHopDong;     // Khóa ngoại tới Hợp đồng (rỗng nếu thiết bị ở Kho/Hong)
     std::string trangThai = "Kho"; // "Dang cap phat", "Kho", "Hong"
+
+    // Hàm kiểm tra mã hợp đồng có tồn tại không (gắn từ main)
+    inline static std::function<bool(const std::string&)> kiemTraHopDong = nullptr;
 
     // ---------- Hàm kiểm tra / tiện ích nội bộ ----------
 
@@ -119,11 +122,11 @@ private:
             std::string s = NhapDuLieu::nhapChuoiHoacGiuNguyen(
                 nhan + " (bo trong de giu nguyen, hoac nhap 'HUY'): ", "");
             if (s.empty()) return;
-            if (s == "HUY" || s == "huy") return;
+            if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
             try { setter(s); return; }
             catch (const std::invalid_argument& e) {
                 std::string err = e.what();
-                if (err == "HUY") return;
+                if (err == "HUY") throw std::invalid_argument("HUY");
                 std::cout << " -> Loi: " << err << '\n';
             }
         }
@@ -171,18 +174,23 @@ private:
 public:
     ThietBi() : LopCoSo(), trangThai("Kho") {}
 
+    // Gắn hàm kiểm tra tồn tại mã hợp đồng từ main
+    static void setKiemTraHopDong(std::function<bool(const std::string&)> f) {
+        kiemTraHopDong = std::move(f);
+    }
+
     // In tiêu đề bảng chuẩn có dấu phân cách ' | '
     static void inTieuDe() {
         std::cout << std::left
-                  << std::setw(10) << "Ma TB"      << " | "
+                  << std::setw(10) << "Ma TB"       << " | "
                   << std::setw(18) << "Ten thiet bi" << " | "
-                  << std::setw(14) << "Serial"     << " | "
-                  << std::setw(7)  << "Loai"       << " | "
-                  << std::setw(12) << "Hang SX"    << " | "
-                  << std::setw(11) << "Ngay nhap"  << " | "
-                  << std::setw(10) << "Ma HD"      << " | "
-                  << std::setw(14) << "Trang thai" << '\n'
-                  << std::string(117, '-')         << '\n';
+                  << std::setw(14) << "Serial"      << " | "
+                  << std::setw(7)  << "Loai"        << " | "
+                  << std::setw(12) << "Hang SX"     << " | "
+                  << std::setw(11) << "Ngay nhap"   << " | "
+                  << std::setw(10) << "Ma HD"       << " | "
+                  << std::setw(14) << "Trang thai"  << '\n'
+                  << std::string(117, '-')          << '\n';
     }
 
     const std::string& getTenThietBi() const { return tenThietBi; }
@@ -233,6 +241,8 @@ public:
             throw std::invalid_argument("Trang thai khong hop le!");
         if (tt == "Dang cap phat") {
             std::string chuanHD = chuanHoaMa(maHD, "Ma hop dong");
+            if (kiemTraHopDong && !kiemTraHopDong(chuanHD))
+                throw std::invalid_argument("Hop dong khong ton tai!");
             maHopDong = chuanHD;
         } else {
             if (!maHD.empty())
@@ -305,7 +315,7 @@ public:
 
         capNhatTruong("Nhap hang san xuat moi", [&](const std::string& s) { setHangSanXuat(s); });
         capNhatTruong("Nhap ngay nhap kho moi (DD/MM/YYYY)",
-                      [&](const std::string& s) { setNgayNhapKho(s); });
+                     [&](const std::string& s) { setNgayNhapKho(s); });
 
         try {
             nhapTrangThai(true);
