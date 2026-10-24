@@ -98,13 +98,21 @@ void menuCRUD(QuanLyLuuTru<T>& ql, const std::string& tenPhanHe) {
         }
         case 2: {
             T obj;
-            obj.nhapThongTin();
+            try {
+                obj.nhapThongTin(); // Lệnh này giờ có thể ném ra lỗi
 
-            if (obj.getMaDinhDanh().empty()) {
-                std::cout << " -> Thao tac da duoc huy, khong them vao danh sach.\n";
-            }
-            else {
-                ql.themMoi(obj);
+                if (obj.getMaDinhDanh().empty()) {
+                    std::cout << " -> Thao tac da duoc huy, khong them vao danh sach.\n";
+                }
+                else {
+                    ql.themMoi(obj);
+                    std::cout << " -> Them moi thanh cong!\n"; // Bổ sung thông báo thành công
+                }
+            } 
+            catch (const std::invalid_argument& e) {
+                // In chính xác câu lỗi bạn viết trong throw ra màn hình
+                std::cout << "\n -> [LOI NHAP DU LIEU]: " << e.what() << "\n";
+                std::cout << " -> DA HUY THAO TAC THEM MOI!\n";
             }
             break;
         }
