@@ -1,10 +1,14 @@
-TB001|SN98765432|ONT|Huawei|HD001|Dang cap phat
-TB002|SN12345678|Modem|TP-Link||Kho
-TB003|SN88889999|ONT|ZTE||Hong
-TB004|SN11223344|Modem|FPT|HD002|Dang cap phat
-TB005|SN55667788|ONT|Huawei||Kho
-TB006|SN99001122|Modem|VNPT|HD003|Dang cap phat
-TB007|SN33445566|ONT|Dasan||Hong
-TB008|SN77889900|Modem|ZTE|HD004|Dang cap phat
-TB009|SN44332211|ONT|TP-Link||Kho
-TB010|SN66554433|Modem|Huawei|HD005|Dang cap phat
+# data/thiet_bi.txt
+# MaTB|TenThietBi|SoSerial|LoaiThietBi|HangSanXuat|NgayNhapKho|MaHopDong|TrangThai
+TB01|ONT GPON HG8245|HW48571290|ONT|Huawei|10/01/2026|HD001|Dang cap phat
+TB02|Modem Dual Band Archer|TP99882233|Modem|TP-Link|15/01/2026|HD002|Dang cap phat
+TB03|ONT ZTE F670L|ZT11223344|ONT|ZTE|05/12/2025|HD003|Dang cap phat
+TB04|ONT Huawei EchoLife|HW55667788|ONT|Huawei|20/02/2026|HD004|Dang cap phat
+TB05|Modem Viettel Pro|VT00112233|Modem|Viettel|10/11/2025|HD005|Dang cap phat
+TB06|ONT FiberHome AN5506|FH99887766|ONT|FiberHome|01/01/2026|HD006|Dang cap phat
+TB07|Modem Enterprise Ruijie|RJ44556677|Modem|Ruijie|15/02/2026|HD007|Dang cap phat
+TB08|ONT VNPT iGate|VN33445566|ONT|VNPT|18/01/2026|HD008|Dang cap phat
+TB09|ONT GPON HG8010H|HW12345678|ONT|Huawei|28/02/2026|HD009|Dang cap phat
+TB10|Modem Tenda AC10|TD88776655|Modem|Tenda|05/01/2026|HD010|Dang cap phat
+TB11|ONT ZTE F601|ZT99001122|ONT|ZTE|10/03/2026|HD011|Dang cap phat
+TB12|Modem Totolink A720R|TL55443322|Modem|Totolink|12/03/2026|HD012|Dang cap phat
