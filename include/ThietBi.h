@@ -2,6 +2,9 @@
  * Tên tác giả: Nguyễn Như Minh
  * Mã sinh viên: B24DCVT253
  * Mô tả file: Lớp quản lý thiết bị ONT/Modem (Entity - UC05 - Single Header)
+ *
+ * Định dạng một dòng trong file (8 trường, ngăn cách bởi '|'):
+ *   maTB|tenThietBi|soSerial|loaiThietBi|hangSanXuat|ngayNhapKho|maHopDong|trangThai
  * ======================================================= */
 
 #ifndef THIET_BI_H
@@ -139,9 +142,9 @@ private:
             : "Chon trang thai (hoac nhap 'HUY'): ";
 
         std::cout << "\nTrang thai thiet bi:\n"
-                  << "1. Kho\n"
-                  << "2. Dang cap phat\n"
-                  << "3. Hong\n";
+            << "1. Kho\n"
+            << "2. Dang cap phat\n"
+            << "3. Hong\n";
 
         std::string s = NhapDuLieu::nhapChuoiHoacGiuNguyen(thongBaoChon, "");
         if (s.empty() && choPhepBoTrong) return false;
@@ -150,7 +153,8 @@ private:
         int chon = 0;
         try {
             chon = std::stoi(s);
-        } catch (...) {
+        }
+        catch (...) {
             chon = 0;
         }
 
@@ -163,7 +167,7 @@ private:
                 std::string maHD = NhapDuLieu::nhapMaDinhDanh("Nhap ma hop dong lien quan (hoac 'HUY'): ");
                 if (maHD == "HUY" || maHD == "huy") throw std::invalid_argument("HUY");
                 setTrangThaiVaHD("Dang cap phat", maHD);
-            });
+                });
             return thanhCong;
         }
 
@@ -182,15 +186,15 @@ public:
     // In tiêu đề bảng chuẩn có dấu phân cách ' | '
     static void inTieuDe() {
         std::cout << std::left
-                  << std::setw(10) << "Ma TB"       << " | "
-                  << std::setw(18) << "Ten thiet bi" << " | "
-                  << std::setw(14) << "Serial"      << " | "
-                  << std::setw(7)  << "Loai"        << " | "
-                  << std::setw(12) << "Hang SX"     << " | "
-                  << std::setw(11) << "Ngay nhap"   << " | "
-                  << std::setw(10) << "Ma HD"       << " | "
-                  << std::setw(14) << "Trang thai"  << '\n'
-                  << std::string(117, '-')          << '\n';
+            << std::setw(10) << "Ma TB" << " | "
+            << std::setw(18) << "Ten thiet bi" << " | "
+            << std::setw(14) << "Serial" << " | "
+            << std::setw(7) << "Loai" << " | "
+            << std::setw(12) << "Hang SX" << " | "
+            << std::setw(11) << "Ngay nhap" << " | "
+            << std::setw(10) << "Ma HD" << " | "
+            << std::setw(14) << "Trang thai" << '\n'
+            << std::string(117, '-') << '\n';
     }
 
     const std::string& getTenThietBi() const { return tenThietBi; }
@@ -244,7 +248,8 @@ public:
             if (kiemTraHopDong && !kiemTraHopDong(chuanHD))
                 throw std::invalid_argument("Hop dong khong ton tai!");
             maHopDong = chuanHD;
-        } else {
+        }
+        else {
             if (!maHD.empty())
                 throw std::invalid_argument("Thiet bi Kho/Hong khong duoc gan ma hop dong!");
             maHopDong.clear();
@@ -263,38 +268,49 @@ public:
         if (!lapDenKhiHopLe([&] {
             std::string s = NhapDuLieu::nhapChuoi("Nhap ten thiet bi (nhap 'HUY' de huy): ");
             setTenThietBi(s);
-        })) { maDinhDanh = ""; return; }
+            })) {
+            maDinhDanh = ""; return;
+        }
 
         if (!lapDenKhiHopLe([&] {
             std::string s = NhapDuLieu::nhapChuoi("Nhap so serial (nhap 'HUY' de huy): ");
             if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
             setSoSerial(s);
-        })) { maDinhDanh = ""; return; }
+            })) {
+            maDinhDanh = ""; return;
+        }
 
         if (!lapDenKhiHopLe([&] {
             std::cout << "Loai thiet bi:\n1. ONT\n2. Modem\n";
             int chonLoai = NhapDuLieu::nhapSoNguyenTrongKhoang("Chon loai (1-2): ", 1, 2);
             setLoaiThietBi(chonLoai == 1 ? "ONT" : "Modem");
-        })) { maDinhDanh = ""; return; }
+            })) {
+            maDinhDanh = ""; return;
+        }
 
         if (!lapDenKhiHopLe([&] {
             std::string s = NhapDuLieu::nhapChuoi("Nhap hang san xuat (nhap 'HUY' de huy): ");
             if (s == "HUY" || s == "huy") throw std::invalid_argument("HUY");
             setHangSanXuat(s);
-        })) { maDinhDanh = ""; return; }
+            })) {
+            maDinhDanh = ""; return;
+        }
 
         if (!lapDenKhiHopLe([&] {
             std::string s = NhapDuLieu::nhapChuoi(
                 "Nhap ngay nhap kho DD/MM/YYYY (nhap 'HUY' de huy): ");
             setNgayNhapKho(s);
-        })) { maDinhDanh = ""; return; }
+            })) {
+            maDinhDanh = ""; return;
+        }
 
         try {
             if (!nhapTrangThai(false)) {
                 maDinhDanh = "";
                 return;
             }
-        } catch (const std::invalid_argument& e) {
+        }
+        catch (const std::invalid_argument& e) {
             if (std::string(e.what()) == "HUY") {
                 maDinhDanh = "";
                 return;
@@ -315,11 +331,12 @@ public:
 
         capNhatTruong("Nhap hang san xuat moi", [&](const std::string& s) { setHangSanXuat(s); });
         capNhatTruong("Nhap ngay nhap kho moi (DD/MM/YYYY)",
-                     [&](const std::string& s) { setNgayNhapKho(s); });
+            [&](const std::string& s) { setNgayNhapKho(s); });
 
         try {
             nhapTrangThai(true);
-        } catch (const std::invalid_argument& e) {
+        }
+        catch (const std::invalid_argument& e) {
             if (std::string(e.what()) == "HUY") return;
             throw;
         }
@@ -328,19 +345,19 @@ public:
     // Hiển thị một dòng dữ liệu dạng bảng khớp với inTieuDe()
     void hienThiThongTin() const override {
         std::cout << std::left
-                  << std::setw(10) << cat(maDinhDanh, 9)                            << " | "
-                  << std::setw(18) << cat(tenThietBi, 17)                           << " | "
-                  << std::setw(14) << cat(soSerial, 13)                             << " | "
-                  << std::setw(7)  << cat(loaiThietBi, 6)                           << " | "
-                  << std::setw(12) << cat(hangSanXuat, 11)                          << " | "
-                  << std::setw(11) << ngayNhapKho                                   << " | "
-                  << std::setw(10) << cat(maHopDong.empty() ? "-" : maHopDong, 9)   << " | "
-                  << std::setw(14) << trangThai                                     << '\n';
+            << std::setw(10) << cat(maDinhDanh, 9) << " | "
+            << std::setw(18) << cat(tenThietBi, 17) << " | "
+            << std::setw(14) << cat(soSerial, 13) << " | "
+            << std::setw(7) << cat(loaiThietBi, 6) << " | "
+            << std::setw(12) << cat(hangSanXuat, 11) << " | "
+            << std::setw(11) << ngayNhapKho << " | "
+            << std::setw(10) << cat(maHopDong.empty() ? "-" : maHopDong, 9) << " | "
+            << std::setw(14) << trangThai << '\n';
     }
 
     std::string chuyenThanhChuoi() const override {
         return maDinhDanh + "|" + tenThietBi + "|" + soSerial + "|" + loaiThietBi + "|" +
-               hangSanXuat + "|" + ngayNhapKho + "|" + maHopDong + "|" + trangThai;
+            hangSanXuat + "|" + ngayNhapKho + "|" + maHopDong + "|" + trangThai;
     }
 
     void docTuChuoi(const std::string& dong) override {
