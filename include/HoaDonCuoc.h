@@ -18,6 +18,7 @@
 #include <fstream>
 #include <cmath>
 #include <cctype>
+#include <stdexcept>
 
 using namespace std;
 
@@ -33,13 +34,11 @@ private:
     // Chuan hoa ma: viet hoa va bo khoang trang.
     string chuanHoaMa(string ma) const {
         string ketQua;
-
         for (unsigned char c : ma) {
             if (!isspace(c)) {
                 ketQua += static_cast<char>(toupper(c));
             }
         }
-
         return ketQua;
     }
 
@@ -48,13 +47,11 @@ private:
         if (str.find('|') != string::npos) {
             return false;
         }
-
         for (unsigned char c : str) {
             if (!isspace(c)) {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -517,7 +514,7 @@ public:
         return ss.str();
     }
 
-    // DOC DU LIEU TU CHUOI.
+    // DOC DU LIEU TU CHUOI (Đã sửa lại dùng throw thay vì return ngầm)
     void docTuChuoi(const string& dongDuLieu) override {
         stringstream ss(dongDuLieu);
 
@@ -537,15 +534,14 @@ public:
             !getline(ss, lap, '|') ||
             !getline(ss, thanhToan, '|') ||
             !getline(ss, tt)) {
-            return;
+            throw runtime_error("Dong du lieu HoaDonCuoc thieu cot (can 7 cot).");
         }
 
         if (getline(ss, duThua, '|')) {
-            return;
+            throw runtime_error("Dong du lieu HoaDonCuoc thua cot.");
         }
 
         double tienDoc;
-
         try {
             size_t viTri = 0;
             tienDoc = stod(tien, &viTri);
@@ -553,23 +549,33 @@ public:
             if (viTri != tien.size() ||
                 !isfinite(tienDoc) ||
                 tienDoc < 0) {
-                return;
+                throw runtime_error("So tien trong HoaDonCuoc khong hop le.");
             }
         }
         catch (...) {
-            return;
+            throw runtime_error("Loi phan tich so tien trong HoaDonCuoc.");
         }
 
         maHoaDon = chuanHoaMa(maHoaDon);
         maHD = chuanHoaMa(maHD);
 
-        if (!maHoaDonHopLe(maHoaDon) ||
-            !chuoiHopLe(maHD) ||
-            !kiemTraThangCuoc(thang) ||
-            !kiemTraNgay(lap) ||
-            (!thanhToan.empty() && !kiemTraNgay(thanhToan)) ||
-            !kiemTraTrangThai(tt)) {
-            return;
+        if (!maHoaDonHopLe(maHoaDon)) {
+            throw runtime_error("Ma hoa don khong hop le: " + maHoaDon);
+        }
+        if (!chuoiHopLe(maHD)) {
+            throw runtime_error("Ma hop dong trong hoa don khong hop le.");
+        }
+        if (!kiemTraThangCuoc(thang)) {
+            throw runtime_error("Thang cuoc khong hop le: " + thang);
+        }
+        if (!kiemTraNgay(lap)) {
+            throw runtime_error("Ngay lap hoa don khong hop le: " + lap);
+        }
+        if (!thanhToan.empty() && !kiemTraNgay(thanhToan)) {
+            throw runtime_error("Ngay thanh toan khong hop le: " + thanhToan);
+        }
+        if (!kiemTraTrangThai(tt)) {
+            throw runtime_error("Trang thai hoa don khong hop le: " + tt);
         }
 
         maDinhDanh = maHoaDon;
