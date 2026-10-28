@@ -358,7 +358,7 @@ public:
             << std::string(128, '-') << '\n';
     }
 
-    // Hien thi 1 dong du lieu giong ban Minh (khop voi inTieuDe)
+
     void hienThiThongTin() const override {
         std::cout << std::left
             << std::setw(12) << cat(maDinhDanh, 11) << " | "
